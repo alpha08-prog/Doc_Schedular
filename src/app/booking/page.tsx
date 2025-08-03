@@ -2,10 +2,6 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import EmptyAppointments from "../components/appointment/EmptyAppointments";
-import TopBar from "../components/common/TopBar";
-import Tabs from "../components/common/Tabs";
-import CardContainer from "../components/common/CardContainer";
-import IconButton from "../components/common/IconButton";
 
 // Mock appointment data
 const mockAppointments = {

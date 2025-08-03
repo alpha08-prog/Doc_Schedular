@@ -123,10 +123,9 @@ const statusColors: Record<string, string> = {
 };
 
 export default function DoctorPatients() {
-  const [patients, setPatients] = useState<Patient[]>(mockPatients);
+  const [patients] = useState<Patient[]>(mockPatients);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("all");
-  const [selectedPatient, setSelectedPatient] = useState<Patient | null>(null);
   const [mounted, setMounted] = useState<boolean>(false);
 
   useEffect(() => {
@@ -331,8 +330,7 @@ export default function DoctorPatients() {
           ) : (
             <div className="divide-y divide-gray-100">
               {filteredPatients.map((patient) => (
-                <div key={patient.id} className="p-6 hover:bg-gray-50 transition-colors cursor-pointer"
-                     onClick={() => setSelectedPatient(patient)}>
+                <div key={patient.id} className="p-6 hover:bg-gray-50 transition-colors">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-4">
                       <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">

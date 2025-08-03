@@ -38,7 +38,7 @@ const mockRecords = [
 
 export default function RecordsPage() {
   const router = useRouter();
-  const [records, setRecords] = useState(mockRecords);
+  const [records] = useState(mockRecords);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {

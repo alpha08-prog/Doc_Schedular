@@ -1,7 +1,6 @@
 "use client";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import DoctorNavbar from "../../components/doc_navbar";
 
 // Mock data for dashboard statistics
@@ -52,7 +51,6 @@ const mockStats = {
 };
 
 export default function DoctorDashboard() {
-  const router = useRouter();
   const [mounted, setMounted] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
@@ -115,7 +113,7 @@ export default function DoctorDashboard() {
           <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-lg border border-white/20 p-6 hover:shadow-xl transition-all duration-200">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Today's Appointments</p>
+                <p className="text-sm font-medium text-gray-600">{`Today's Appointments`}</p>
                 <p className="text-3xl font-bold text-blue-600">{mockStats.todayAppointments}</p>
               </div>
               <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
@@ -175,7 +173,7 @@ export default function DoctorDashboard() {
           <div className="lg:col-span-2">
             <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-lg border border-white/20 p-6">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-xl font-bold text-gray-900">Today's Appointments</h2>
+                <h2 className="text-xl font-bold text-gray-900">{`Today's Appointments`}</h2>
                 <Link 
                   href="/doctor/appointments" 
                   className="text-blue-600 hover:text-blue-700 font-medium text-sm flex items-center"

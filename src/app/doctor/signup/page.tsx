@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+//import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 interface DoctorForm {
@@ -69,7 +69,6 @@ export default function DoctorSignup() {
   const [mounted, setMounted] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showPassword, setShowPassword] = useState(false);
-  const router = useRouter();
 
   useEffect(() => {
     setMounted(true);
@@ -415,7 +414,7 @@ export default function DoctorSignup() {
           </svg>
           <div className="text-sm text-blue-800">
             <p className="font-medium mb-1">Account Verification</p>
-            <p>Your account will be reviewed within 24-48 hours. You'll receive an email confirmation once approved.</p>
+            <p>{`Your account will be reviewed within 24-48 hours. You'll receive an email confirmation once approved.`}</p>
           </div>
         </div>
       </div>

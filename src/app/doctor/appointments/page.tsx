@@ -116,7 +116,6 @@ const typeColors: Record<string, string> = {
 export default function DoctorAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments);
   const [selectedTab, setSelectedTab] = useState<string>("today");
-  const [selectedAppointment, setSelectedAppointment] = useState<Appointment | null>(null);
   const [mounted, setMounted] = useState<boolean>(false);
 
   useEffect(() => {
@@ -140,9 +139,6 @@ export default function DoctorAppointments() {
   };
 
   const getFilteredAppointments = () => {
-    const today = new Date().toISOString().split('T')[0];
-    const tomorrow = new Date(Date.now() + 86400000).toISOString().split('T')[0];
-    
     switch (selectedTab) {
       case "today":
         return appointments.filter(apt => apt.date === "2024-01-16"); // Mock today
@@ -202,7 +198,7 @@ export default function DoctorAppointments() {
           <div className="bg-white/80 backdrop-blur-lg rounded-2xl shadow-lg border border-white/20 p-6">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-gray-600">Today's Total</p>
+                <p className="text-sm font-medium text-gray-600">{`Today's Total`}</p>
                 <p className="text-2xl font-bold text-blue-600">
                   {appointments.filter(apt => apt.date === "2024-01-16").length}
                 </p>
