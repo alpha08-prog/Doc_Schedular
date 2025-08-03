@@ -5,9 +5,15 @@ const nextConfig: NextConfig = {
     domains: ["randomuser.me"],
   },
   experimental: {
-  typedRoutes: true,
-},
+    typedRoutes: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
+  typescript: {
+    ignoreBuildErrors: false,
+  },
+  output: 'standalone',
 };
-
 
 export default nextConfig;

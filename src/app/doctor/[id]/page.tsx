@@ -1,17 +1,23 @@
 import Link from "next/link";
 import doctorsData from "../../data/doctors.json";
 
-type Doctor = {
-  id: string;
+// Define proper TypeScript interface for doctors
+interface Doctor {
+  id: number;
   name: string;
   specialty: string;
-};
+  image?: string;
+  bio?: string;
+  rating?: number;
+  experience?: string;
+  status?: string;
+}
 
-// Let TS infer the real JSON structure first
-type RawDoctor = typeof doctorsData extends (infer U)[] ? U : never;
+// Type assertion for the imported JSON data
+const doctors = doctorsData as Doctor[];
 
 // Safely transform number `id` → string `id`, and select only required fields
-const doctors: Doctor[] = (doctorsData as RawDoctor[]).map((doc) => ({
+const transformedDoctors: { id: string; name: string; specialty: string }[] = doctors.map((doc) => ({
   id: String(doc.id),
   name: doc.name,
   specialty: doc.specialty,
