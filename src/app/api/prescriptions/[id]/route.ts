@@ -1,21 +1,29 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Prescription } from '../../api/prescriptions/[id]/route';
+import type { Prescription } from '../route';
 
-// Mock data storage (in production, this would be a database)
-let prescriptions: Prescription[] = [
-  // ... your mock prescriptions here ...
-];
+// Mock data
+let prescriptions: Prescription[] = [ /* your mock prescriptions */ ];
 
 // GET - Fetch a single prescription by ID
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const prescription = prescriptions.find(p => p.id === params.id);
+  const { id } = params;
+
+  const prescription = prescriptions.find(p => p.id === id);
+
   if (!prescription) {
-    return NextResponse.json({ success: false, error: 'Prescription not found' }, { status: 404 });
+    return NextResponse.json(
+      { success: false, error: 'Prescription not found' },
+      { status: 404 }
+    );
   }
-  return NextResponse.json({ success: true, data: prescription });
+
+  return NextResponse.json({
+    success: true,
+    data: prescription
+  });
 }
 
 // PUT - Update a prescription
@@ -23,11 +31,17 @@ export async function PUT(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  const { id } = params;
   const body = await request.json();
-  const index = prescriptions.findIndex(p => p.id === params.id);
+  const index = prescriptions.findIndex(p => p.id === id);
+
   if (index === -1) {
-    return NextResponse.json({ success: false, error: 'Prescription not found' }, { status: 404 });
+    return NextResponse.json(
+      { success: false, error: 'Prescription not found' },
+      { status: 404 }
+    );
   }
+
   const updatedPrescription: Prescription = {
     ...prescriptions[index],
     medicineName: body.medicineName || prescriptions[index].medicineName,
@@ -37,8 +51,14 @@ export async function PUT(
     prescriptionDate: body.prescriptionDate || prescriptions[index].prescriptionDate,
     updatedAt: new Date().toISOString()
   };
+
   prescriptions[index] = updatedPrescription;
-  return NextResponse.json({ success: true, data: updatedPrescription, message: 'Prescription updated successfully' });
+
+  return NextResponse.json({
+    success: true,
+    data: updatedPrescription,
+    message: 'Prescription updated successfully'
+  });
 }
 
 // DELETE - Delete a prescription
@@ -46,10 +66,23 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
-  const index = prescriptions.findIndex(p => p.id === params.id);
+  const { id } = params;
+  const index = prescriptions.findIndex(p => p.id === id);
+
   if (index === -1) {
-    return NextResponse.json({ success: false, error: 'Prescription not found' }, { status: 404 });
+    return NextResponse.json(
+      { success: false, error: 'Prescription not found' },
+      { status: 404 }
+    );
   }
+
   const deleted = prescriptions.splice(index, 1)[0];
-  return NextResponse.json({ success: true, data: deleted, message: 'Prescription deleted successfully' });
+
+  return NextResponse.json({
+    success: true,
+    data: deleted,
+    message: 'Prescription deleted successfully'
+  });
 }
+
+

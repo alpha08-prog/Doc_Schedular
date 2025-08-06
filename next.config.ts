@@ -5,7 +5,7 @@ const nextConfig: NextConfig = {
     domains: ["randomuser.me"],
   },
   experimental: {
-    typedRoutes: true,
+    typedRoutes: false,
   },
   eslint: {
     ignoreDuringBuilds: true,

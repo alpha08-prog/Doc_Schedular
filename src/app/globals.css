@@ -42,9 +42,10 @@
 html, body {
   font-family: 'Inter', ui-sans-serif, system-ui, sans-serif;
   line-height: 1.6;
-  color: var(--gray-800);
+  color: #111;
   background-color: var(--gray-50);
   scroll-behavior: smooth;
+  padding-bottom: 80px;
 }
 
 /* Custom scrollbar */
