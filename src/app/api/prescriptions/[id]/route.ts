@@ -2,14 +2,11 @@ import { NextRequest, NextResponse } from 'next/server';
 import type { Prescription } from '../route';
 
 // Mock data
-let prescriptions: Prescription[] = [ /* your mock prescriptions */ ];
+let prescriptions: Prescription[] = [];
 
 // GET - Fetch a single prescription by ID
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const { id } = params;
+export async function GET(request: NextRequest, context: { params: { id: string } }) {
+  const id = context.params.id;
 
   const prescription = prescriptions.find(p => p.id === id);
 
@@ -27,11 +24,8 @@ export async function GET(
 }
 
 // PUT - Update a prescription
-export async function PUT(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const { id } = params;
+export async function PUT(request: NextRequest, context: { params: { id: string } }) {
+  const id = context.params.id;
   const body = await request.json();
   const index = prescriptions.findIndex(p => p.id === id);
 
@@ -62,11 +56,8 @@ export async function PUT(
 }
 
 // DELETE - Delete a prescription
-export async function DELETE(
-  request: NextRequest,
-  { params }: { params: { id: string } }
-) {
-  const { id } = params;
+export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
+  const id = context.params.id;
   const index = prescriptions.findIndex(p => p.id === id);
 
   if (index === -1) {

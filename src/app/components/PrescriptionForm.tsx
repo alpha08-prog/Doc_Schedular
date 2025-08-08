@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { Prescription } from '../api/prescriptions/route';
+import PatientSelector from './PatientSelector';
 
 interface PrescriptionFormProps {
   doctorId: string;
@@ -88,6 +89,19 @@ export default function PrescriptionForm({
     }
   };
 
+  const handlePatientSelect = (patientId: string, patientName: string) => {
+    setFormData(prev => ({ 
+      ...prev, 
+      patientId, 
+      patientName 
+    }));
+    
+    // Clear patient name error when patient is selected
+    if (errors.patientName) {
+      setErrors(prev => ({ ...prev, patientName: '' }));
+    }
+  };
+
   return (
     <div className="bg-white rounded-lg shadow-md p-6 max-w-2xl mx-auto overflow-auto" style={{maxHeight: '90vh'}}>
       <h2 className="text-2xl font-bold text-gray-800 mb-6">
@@ -98,19 +112,11 @@ export default function PrescriptionForm({
         {/* Patient Information */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label htmlFor="patientName" className="block text-sm font-medium text-gray-700 mb-1">
-              Patient Name *
-            </label>
-            <input
-              type="text"
-              id="patientName"
-              name="patientName"
-              value={formData.patientName}
-              onChange={handleInputChange}
-              className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-black ${
-                errors.patientName ? 'border-red-500' : 'border-gray-300'
-              }`}
-              placeholder="Enter patient name"
+            <PatientSelector
+              selectedPatientId={formData.patientId}
+              selectedPatientName={formData.patientName}
+              onPatientSelect={handlePatientSelect}
+              disabled={isLoading}
             />
             {errors.patientName && (
               <p className="text-red-500 text-sm mt-1">{errors.patientName}</p>

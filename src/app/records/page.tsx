@@ -36,10 +36,16 @@ const mockRecords = [
   }
 ];
 
+import Prescriptions from "./Prescriptions";
+
 export default function RecordsPage() {
   const router = useRouter();
   const [records] = useState(mockRecords);
   const [mounted, setMounted] = useState(false);
+  const [tab, setTab] = useState<'records' | 'prescriptions'>('records');
+
+  // TODO: Replace with real patientId from auth/session
+  const patientId = typeof window !== 'undefined' ? localStorage.getItem('patientId') || 'patient-1' : 'patient-1';
 
   useEffect(() => {
     setMounted(true);
@@ -103,80 +109,99 @@ export default function RecordsPage() {
         </div>
       </div>
 
-      {/* Records List */}
+      {/* Tabs */}
       <div className="max-w-4xl mx-auto px-4 py-6">
-        <div className="space-y-4">
-          {records.length === 0 ? (
-            <div className="text-center py-12">
-              <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-semibold text-gray-900 mb-2">No records found</h3>
-              <p className="text-gray-600">Your medical records will appear here</p>
-            </div>
-          ) : (
-            <>
-              <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold text-gray-900">
-                  {records.length} record{records.length !== 1 ? 's' : ''}
-                </h2>
-                <button className="text-blue-600 text-sm font-medium hover:text-blue-700">
-                  Download All
-                </button>
-              </div>
-
-              {records.map((record) => (
-                <div key={record.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="flex items-center space-x-3">
-                      {getTypeIcon(record.type)}
-                      <div>
-                        <h3 className="font-semibold text-gray-900">{record.diagnosis}</h3>
-                        <p className="text-sm text-gray-600">{record.doctor} • {record.specialty}</p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-sm font-medium text-gray-900">
-                        {new Date(record.date).toLocaleDateString('en-US', {
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric'
-                        })}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="space-y-3">
-                    {record.prescription && (
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-900 mb-1">Prescription</h4>
-                        <p className="text-sm text-gray-600">{record.prescription}</p>
-                      </div>
-                    )}
-                    
-                    {record.notes && (
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-900 mb-1">Notes</h4>
-                        <p className="text-sm text-gray-600">{record.notes}</p>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
-                    <button className="text-blue-600 text-sm font-medium hover:text-blue-700">
-                      View Details
-                    </button>
-                    <button className="text-gray-500 text-sm hover:text-gray-700">
-                      Download
-                    </button>
-                  </div>
-                </div>
-              ))}
-            </>
-          )}
+        <div className="flex space-x-4 mb-6">
+          <button
+            className={`px-4 py-2 rounded-t-lg font-medium border-b-2 transition-colors ${tab === 'records' ? 'border-blue-600 text-blue-700 bg-white' : 'border-transparent text-gray-500 bg-gray-100 hover:text-blue-600'}`}
+            onClick={() => setTab('records')}
+          >
+            Records
+          </button>
+          <button
+            className={`px-4 py-2 rounded-t-lg font-medium border-b-2 transition-colors ${tab === 'prescriptions' ? 'border-blue-600 text-blue-700 bg-white' : 'border-transparent text-gray-500 bg-gray-100 hover:text-blue-600'}`}
+            onClick={() => setTab('prescriptions')}
+          >
+            Prescriptions
+          </button>
         </div>
+        {/* Tab Content */}
+        {tab === 'records' ? (
+          <div className="space-y-4">
+            {records.length === 0 ? (
+              <div className="text-center py-12">
+                <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">No records found</h3>
+                <p className="text-gray-600">Your medical records will appear here</p>
+              </div>
+            ) : (
+              <>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-lg font-semibold text-gray-900">
+                    {records.length} record{records.length !== 1 ? 's' : ''}
+                  </h2>
+                  <button className="text-blue-600 text-sm font-medium hover:text-blue-700">
+                    Download All
+                  </button>
+                </div>
+
+                {records.map((record) => (
+                  <div key={record.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 hover:shadow-md transition-shadow">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex items-center space-x-3">
+                        {getTypeIcon(record.type)}
+                        <div>
+                          <h3 className="font-semibold text-gray-900">{record.diagnosis}</h3>
+                          <p className="text-sm text-gray-600">{record.doctor} • {record.specialty}</p>
+                        </div>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-sm font-medium text-gray-900">
+                          {new Date(record.date).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-3">
+                      {record.prescription && (
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-900 mb-1">Prescription</h4>
+                          <p className="text-sm text-gray-600">{record.prescription}</p>
+                        </div>
+                      )}
+                      
+                      {record.notes && (
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-900 mb-1">Notes</h4>
+                          <p className="text-sm text-gray-600">{record.notes}</p>
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-100">
+                      <button className="text-blue-600 text-sm font-medium hover:text-blue-700">
+                        View Details
+                      </button>
+                      <button className="text-gray-500 text-sm hover:text-gray-700">
+                        Download
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </>
+            )}
+          </div>
+        ) : (
+          <Prescriptions patientId={patientId} />
+        )}
       </div>
     </div>
   );
