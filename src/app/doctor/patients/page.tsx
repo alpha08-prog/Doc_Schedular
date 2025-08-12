@@ -386,6 +386,13 @@ export default function DoctorPatients() {
                       <button className="px-3 py-1 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 transition-colors">
                         View Details
                       </button>
+                      <a
+                        href={`/doctor/patients/patient-${patient.id}/history`}
+                        className="px-3 py-1 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 transition-colors"
+                        title="View Medical History"
+                      >
+                        Medical History
+                      </a>
                       <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z" />

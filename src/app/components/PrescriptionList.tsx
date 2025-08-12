@@ -275,6 +275,15 @@ export default function PrescriptionList({
                         >
                           Delete
                         </button>
+                        {prescription.patientId && (
+                          <a
+                            href={`/doctor/patients/${prescription.patientId}/history`}
+                            className="px-3 py-1 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700"
+                            title="View Medical History"
+                          >
+                            Medical History
+                          </a>
+                        )}
                       </div>
                     </div>
                   </div>

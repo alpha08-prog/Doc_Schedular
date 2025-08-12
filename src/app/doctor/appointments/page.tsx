@@ -113,6 +113,21 @@ const typeColors: Record<string, string> = {
   "Treatment": "bg-orange-50 text-orange-700"
 };
 
+// Map mock patient names to their numeric IDs used in patients page
+const patientNameToId: Record<string, number> = {
+  "Sarah Johnson": 1,
+  "Michael Chen": 2,
+  "Emily Rodriguez": 3,
+  "David Wilson": 4,
+  "Lisa Thompson": 5,
+  "Robert Garcia": 6,
+};
+
+const getPatientSlug = (name: string) => {
+  const id = patientNameToId[name];
+  return id ? `patient-${id}` : null;
+};
+
 export default function DoctorAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>(mockAppointments);
   const [selectedTab, setSelectedTab] = useState<string>("today");
@@ -376,6 +391,15 @@ export default function DoctorAppointments() {
                             Cancel
                           </button>
                         </>
+                      )}
+                      {getPatientSlug(appointment.patientName) && (
+                        <a
+                          href={`/doctor/patients/${getPatientSlug(appointment.patientName)}/history`}
+                          className="px-3 py-1 bg-indigo-600 text-white text-sm font-medium rounded-lg hover:bg-indigo-700 transition-colors"
+                          title="View Medical History"
+                        >
+                          Medical History
+                        </a>
                       )}
                       <button className="p-2 text-gray-400 hover:text-gray-600 transition-colors">
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
