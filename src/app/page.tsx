@@ -67,6 +67,12 @@ export default function Home() {
                     >
                       <span>Sign Up</span>
                     </Link>
+                    <Link 
+                      href="/patient" 
+                      className="w-full inline-flex items-center justify-center px-4 py-2 rounded border border-gray-200 bg-white text-gray-700 hover:bg-gray-50"
+                    >
+                      <span>Patient Portal</span>
+                    </Link>
                   </div>
                 </div>
               </div>
