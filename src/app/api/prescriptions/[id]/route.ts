@@ -1,14 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
-import type { Prescription } from '../route';
-
-// Mock data
-let prescriptions: Prescription[] = [];
+import type { Prescription } from '../../../../types/prescription';
+import { prescriptionStore } from '../store';
 
 // GET - Fetch a single prescription by ID
 export async function GET(request: NextRequest, context: { params: { id: string } }) {
   const id = context.params.id;
 
-  const prescription = prescriptions.find(p => p.id === id);
+  const prescription = prescriptionStore.findById(id);
 
   if (!prescription) {
     return NextResponse.json(
@@ -27,30 +25,26 @@ export async function GET(request: NextRequest, context: { params: { id: string 
 export async function PUT(request: NextRequest, context: { params: { id: string } }) {
   const id = context.params.id;
   const body = await request.json();
-  const index = prescriptions.findIndex(p => p.id === id);
+  const existing = prescriptionStore.findById(id);
 
-  if (index === -1) {
+  if (!existing) {
     return NextResponse.json(
       { success: false, error: 'Prescription not found' },
       { status: 404 }
     );
   }
 
-  const updatedPrescription: Prescription = {
-    ...prescriptions[index],
-    medicineName: body.medicineName || prescriptions[index].medicineName,
-    dosage: body.dosage || prescriptions[index].dosage,
-    duration: body.duration || prescriptions[index].duration,
-    notes: body.notes !== undefined ? body.notes : prescriptions[index].notes,
-    prescriptionDate: body.prescriptionDate || prescriptions[index].prescriptionDate,
-    updatedAt: new Date().toISOString()
-  };
-
-  prescriptions[index] = updatedPrescription;
+  const updatedPrescription = prescriptionStore.update(id, {
+    medicineName: body.medicineName ?? existing.medicineName,
+    dosage: body.dosage ?? existing.dosage,
+    duration: body.duration ?? existing.duration,
+    notes: body.notes ?? existing.notes,
+    prescriptionDate: body.prescriptionDate ?? existing.prescriptionDate,
+  } as Partial<Prescription>);
 
   return NextResponse.json({
     success: true,
-    data: updatedPrescription,
+    data: updatedPrescription!,
     message: 'Prescription updated successfully'
   });
 }
@@ -58,16 +52,16 @@ export async function PUT(request: NextRequest, context: { params: { id: string 
 // DELETE - Delete a prescription
 export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
   const id = context.params.id;
-  const index = prescriptions.findIndex(p => p.id === id);
+  const existing = prescriptionStore.findById(id);
 
-  if (index === -1) {
+  if (!existing) {
     return NextResponse.json(
       { success: false, error: 'Prescription not found' },
       { status: 404 }
     );
   }
 
-  const deleted = prescriptions.splice(index, 1)[0];
+  const deleted = prescriptionStore.remove(id)!;
 
   return NextResponse.json({
     success: true,

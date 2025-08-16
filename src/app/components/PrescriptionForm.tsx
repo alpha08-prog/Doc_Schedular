@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Prescription } from '../api/prescriptions/route';
+import { Prescription } from '../../types/prescription';
 import PatientSelector from './PatientSelector';
 
 interface PrescriptionFormProps {

@@ -1,11 +1,11 @@
 'use client';
 
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import DoctorNavbar from '../../components/doc_navbar';
 import PrescriptionForm from '../../components/PrescriptionForm';
 import PrescriptionList from '../../components/PrescriptionList';
 import NotificationToast from '../../components/NotificationToast';
-import { Prescription } from '../../api/prescriptions/route';
+import { Prescription } from '../../../types/prescription';
 
 export default function PrescriptionsPage() {
   const [showForm, setShowForm] = useState(false);

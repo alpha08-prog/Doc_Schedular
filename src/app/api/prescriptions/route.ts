@@ -1,51 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-export interface Prescription {
-  id: string;
-  patientId: string;
-  patientName: string;
-  doctorId: string;
-  appointmentId: string;
-  medicineName: string;
-  dosage: string;
-  duration: string;
-  notes: string;
-  prescriptionDate: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// Mock data storage (in production, this would be a database)
-let prescriptions: Prescription[] = [
-  {
-    id: '1',
-    patientId: 'patient-1',
-    patientName: 'John Doe',
-    doctorId: '1',
-    appointmentId: 'apt-001',
-    medicineName: 'Amoxicillin',
-    dosage: '500mg twice daily',
-    duration: '7 days',
-    notes: 'Take with food. Complete the full course.',
-    prescriptionDate: '2024-01-15',
-    createdAt: '2024-01-15T10:30:00Z',
-    updatedAt: '2024-01-15T10:30:00Z'
-  },
-  {
-    id: '2',
-    patientId: 'patient-2',
-    patientName: 'Jane Smith',
-    doctorId: '1',
-    appointmentId: 'apt-002',
-    medicineName: 'Ibuprofen',
-    dosage: '400mg as needed',
-    duration: '5 days',
-    notes: 'For pain relief. Do not exceed 3 doses per day.',
-    prescriptionDate: '2024-01-16',
-    createdAt: '2024-01-16T14:20:00Z',
-    updatedAt: '2024-01-16T14:20:00Z'
-  }
-];
+import type { Prescription } from '../../../types/prescription';
+import { prescriptionStore } from './store';
 
 // GET - Fetch all prescriptions or filter by query params
 export async function GET(request: NextRequest) {
@@ -56,7 +11,7 @@ export async function GET(request: NextRequest) {
     const appointmentId = searchParams.get('appointmentId');
     const search = searchParams.get('search');
 
-    let filteredPrescriptions = [...prescriptions];
+    let filteredPrescriptions = [...prescriptionStore.all()];
 
     // Filter by doctorId
     if (doctorId) {
@@ -104,8 +59,15 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     
-    const newPrescription: Prescription = {
-      id: Date.now().toString(),
+    // Basic validation
+    if (!body.patientName || !body.medicineName || !body.dosage || !body.duration) {
+      return NextResponse.json(
+        { success: false, error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    const created = prescriptionStore.create({
       patientId: body.patientId,
       patientName: body.patientName,
       doctorId: body.doctorId,
@@ -115,15 +77,11 @@ export async function POST(request: NextRequest) {
       duration: body.duration,
       notes: body.notes || '',
       prescriptionDate: body.prescriptionDate || new Date().toISOString().split('T')[0],
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
-
-    prescriptions.push(newPrescription);
+    } as Omit<Prescription, 'id' | 'createdAt' | 'updatedAt'>);
 
     return NextResponse.json({
       success: true,
-      data: newPrescription,
+      data: created,
       message: 'Prescription created successfully'
     }, { status: 201 });
   } catch (error) {

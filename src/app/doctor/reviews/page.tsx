@@ -2,18 +2,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import StarRating from "../../components/StarRating";
 import Link from "next/link";
+import type { Review } from "../../../types/review";
 
- type Review = {
-  id: string;
-  appointmentId: string;
-  patientId: string;
-  patientName?: string;
-  doctorId: string;
-  rating: number;
-  comment?: string;
-  createdAt: string;
-  updatedAt: string;
-};
 
 type FetchResponse = {
   success: boolean;

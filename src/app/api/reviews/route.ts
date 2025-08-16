@@ -1,52 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-export interface Review {
-  id: string;
-  appointmentId: string;
-  patientId: string;
-  patientName?: string;
-  doctorId: string;
-  rating: number; // 1-5
-  comment?: string;
-  createdAt: string; // ISO
-  updatedAt: string; // ISO
-}
-
-// Use a global store so sibling route modules share the same data in dev
-const g = global as unknown as { __REVIEWS__?: Review[] };
-if (!g.__REVIEWS__) {
-  g.__REVIEWS__ = [
-    {
-      id: 'rev-001',
-      appointmentId: 'apt-001',
-      patientId: 'patient-1',
-      patientName: 'Sarah Johnson',
-      doctorId: '1',
-      rating: 5,
-      comment: 'Great experience, very attentive.',
-      createdAt: '2024-01-15T10:45:00Z',
-      updatedAt: '2024-01-15T10:45:00Z',
-    },
-    {
-      id: 'rev-002',
-      appointmentId: 'apt-002',
-      patientId: 'patient-2',
-      patientName: 'Michael Chen',
-      doctorId: '1',
-      rating: 4,
-      comment: 'Helpful and professional.',
-      createdAt: '2024-01-16T12:30:00Z',
-      updatedAt: '2024-01-16T12:30:00Z',
-    },
-  ];
-}
-
-function getStore(): Review[] {
-  return g.__REVIEWS__!;
-}
-function setStore(arr: Review[]) {
-  g.__REVIEWS__ = arr;
-}
+import type { Review } from '../../../types/review';
+import { reviewStore } from './store';
 
 function buildStats(items: Review[]) {
   const total = items.length;
@@ -79,7 +33,7 @@ export async function GET(request: NextRequest) {
     const ratingMax = searchParams.get('ratingMax');
     const sort = (searchParams.get('sort') || 'newest') as 'newest'|'oldest'|'highest'|'lowest';
 
-    let data = [...getStore()];
+    let data = [...reviewStore.all()];
     if (doctorId) data = data.filter(r => r.doctorId === doctorId);
     if (patientId) data = data.filter(r => r.patientId === patientId);
     if (appointmentId) data = data.filter(r => r.appointmentId === appointmentId);
@@ -125,21 +79,15 @@ export async function POST(request: NextRequest) {
     if (!body.rating || body.rating < 1 || body.rating > 5) {
       return NextResponse.json({ success: false, error: 'Rating must be 1-5' }, { status: 400 });
     }
-    const review: Review = {
-      id: `rev-${Date.now()}`,
+    const created = reviewStore.create({
       appointmentId: body.appointmentId,
       patientId: body.patientId,
       patientName: body.patientName,
       doctorId: body.doctorId,
       rating: Number(body.rating),
       comment: body.comment || '',
-      createdAt: now,
-      updatedAt: now,
-    };
-    const store = getStore();
-    store.unshift(review);
-    setStore(store);
-    return NextResponse.json({ success: true, data: review }, { status: 201 });
+    } as Omit<Review,'id'|'createdAt'|'updatedAt'>);
+    return NextResponse.json({ success: true, data: created }, { status: 201 });
   } catch (e) {
     return NextResponse.json({ success: false, error: 'Failed to create review' }, { status: 500 });
   }
