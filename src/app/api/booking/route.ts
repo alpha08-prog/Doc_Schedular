@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   const { doctorId, userId, timeslot } = await request.json();
@@ -10,9 +10,9 @@ export async function POST(request: Request) {
         doctorId,
         userId,
         timeslot,
-        status: 'confirmed',
+        status: "confirmed",
       },
     });
   }
-  return NextResponse.json({ success: false, error: 'Missing fields' }, { status: 400 });
+  return NextResponse.json({ success: false, error: "Missing fields" }, { status: 400 });
 }

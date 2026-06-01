@@ -23,7 +23,13 @@ export default function StarRating({ value, onChange, readOnly = false, size = 2
           className={readOnly ? "cursor-default" : "cursor-pointer hover:scale-105 transition"}
           aria-label={`${i} star`}
         >
-          <svg width={size} height={size} viewBox="0 0 20 20" fill={color(i)} xmlns="http://www.w3.org/2000/svg">
+          <svg
+            width={size}
+            height={size}
+            viewBox="0 0 20 20"
+            fill={color(i)}
+            xmlns="http://www.w3.org/2000/svg"
+          >
             <path d="M10 15l-5.878 3.09 1.122-6.545L.488 6.91l6.562-.955L10 0l2.95 5.955 6.562.955-4.756 4.634 1.122 6.545z" />
           </svg>
         </button>

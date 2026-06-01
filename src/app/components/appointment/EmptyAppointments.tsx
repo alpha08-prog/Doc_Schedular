@@ -19,7 +19,14 @@ interface EmptyAppointmentsProps {
 }
 
 const DefaultIllustration = (
-  <svg width="120" height="120" viewBox="0 0 120 120" fill="none" xmlns="http://www.w3.org/2000/svg" className="mb-6">
+  <svg
+    width="120"
+    height="120"
+    viewBox="0 0 120 120"
+    fill="none"
+    xmlns="http://www.w3.org/2000/svg"
+    className="mb-6"
+  >
     <rect x="20" y="30" width="80" height="60" rx="8" fill="#E5E7EB" />
     <rect x="30" y="40" width="60" height="40" rx="6" fill="#F3F4F6" />
     <rect x="40" y="50" width="40" height="20" rx="4" fill="#E0F2FE" />
@@ -47,4 +54,4 @@ const EmptyAppointments: React.FC<EmptyAppointmentsProps> = ({
   </div>
 );
 
-export default EmptyAppointments; 
+export default EmptyAppointments;

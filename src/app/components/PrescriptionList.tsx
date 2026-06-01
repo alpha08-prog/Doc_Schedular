@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { Prescription } from '../../types/prescription';
+import { useState, useEffect } from "react";
+import { Prescription } from "../../types/prescription";
 
 interface PrescriptionListProps {
   doctorId: string;
@@ -14,14 +14,14 @@ export default function PrescriptionList({
   doctorId,
   onEdit,
   onDelete,
-  refreshTrigger = 0
+  refreshTrigger = 0,
 }: PrescriptionListProps) {
   const [prescriptions, setPrescriptions] = useState<Prescription[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [searchTerm, setSearchTerm] = useState('');
-  const [groupBy, setGroupBy] = useState<'patient' | 'appointment' | 'date'>('date');
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('desc');
+  const [searchTerm, setSearchTerm] = useState("");
+  const [groupBy, setGroupBy] = useState<"patient" | "appointment" | "date">("date");
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("desc");
 
   useEffect(() => {
     fetchPrescriptions();
@@ -31,10 +31,10 @@ export default function PrescriptionList({
     try {
       setLoading(true);
       setError(null);
-      
+
       const params = new URLSearchParams({
         doctorId,
-        ...(searchTerm && { search: searchTerm })
+        ...(searchTerm && { search: searchTerm }),
       });
 
       const response = await fetch(`/api/prescriptions?${params}`);
@@ -43,11 +43,11 @@ export default function PrescriptionList({
       if (data.success) {
         setPrescriptions(data.data);
       } else {
-        setError(data.error || 'Failed to fetch prescriptions');
+        setError(data.error || "Failed to fetch prescriptions");
       }
     } catch (err) {
-      setError('Failed to fetch prescriptions');
-      console.error('Error fetching prescriptions:', err);
+      setError("Failed to fetch prescriptions");
+      console.error("Error fetching prescriptions:", err);
     } finally {
       setLoading(false);
     }
@@ -59,13 +59,13 @@ export default function PrescriptionList({
   };
 
   const handleDelete = async (prescriptionId: string) => {
-    if (!confirm('Are you sure you want to delete this prescription?')) {
+    if (!confirm("Are you sure you want to delete this prescription?")) {
       return;
     }
 
     try {
       const response = await fetch(`/api/prescriptions/${prescriptionId}`, {
-        method: 'DELETE',
+        method: "DELETE",
       });
 
       const data = await response.json();
@@ -74,11 +74,11 @@ export default function PrescriptionList({
         onDelete(prescriptionId);
         fetchPrescriptions(); // Refresh the list
       } else {
-        alert(data.error || 'Failed to delete prescription');
+        alert(data.error || "Failed to delete prescription");
       }
     } catch (err) {
-      console.error('Error deleting prescription:', err);
-      alert('Failed to delete prescription');
+      console.error("Error deleting prescription:", err);
+      alert("Failed to delete prescription");
     }
   };
 
@@ -86,38 +86,47 @@ export default function PrescriptionList({
     const sorted = [...prescriptions].sort((a, b) => {
       const dateA = new Date(a.prescriptionDate).getTime();
       const dateB = new Date(b.prescriptionDate).getTime();
-      return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
+      return sortOrder === "desc" ? dateB - dateA : dateA - dateB;
     });
 
-    if (groupBy === 'patient') {
-      return sorted.reduce((groups, prescription) => {
-        const key = prescription.patientName;
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(prescription);
-        return groups;
-      }, {} as Record<string, Prescription[]>);
-    } else if (groupBy === 'appointment') {
-      return sorted.reduce((groups, prescription) => {
-        const key = prescription.appointmentId || 'No Appointment';
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(prescription);
-        return groups;
-      }, {} as Record<string, Prescription[]>);
+    if (groupBy === "patient") {
+      return sorted.reduce(
+        (groups, prescription) => {
+          const key = prescription.patientName;
+          if (!groups[key]) groups[key] = [];
+          groups[key].push(prescription);
+          return groups;
+        },
+        {} as Record<string, Prescription[]>
+      );
+    } else if (groupBy === "appointment") {
+      return sorted.reduce(
+        (groups, prescription) => {
+          const key = prescription.appointmentId || "No Appointment";
+          if (!groups[key]) groups[key] = [];
+          groups[key].push(prescription);
+          return groups;
+        },
+        {} as Record<string, Prescription[]>
+      );
     } else {
-      return sorted.reduce((groups, prescription) => {
-        const key = new Date(prescription.prescriptionDate).toLocaleDateString();
-        if (!groups[key]) groups[key] = [];
-        groups[key].push(prescription);
-        return groups;
-      }, {} as Record<string, Prescription[]>);
+      return sorted.reduce(
+        (groups, prescription) => {
+          const key = new Date(prescription.prescriptionDate).toLocaleDateString();
+          if (!groups[key]) groups[key] = [];
+          groups[key].push(prescription);
+          return groups;
+        },
+        {} as Record<string, Prescription[]>
+      );
     }
   };
 
   const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
+    return new Date(dateString).toLocaleDateString("en-US", {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
     });
   };
 
@@ -150,7 +159,7 @@ export default function PrescriptionList({
     <div className="bg-white rounded-lg shadow-md p-6">
       <div className="mb-6">
         <h2 className="text-2xl font-bold text-gray-800 mb-4">Prescriptions</h2>
-        
+
         {/* Search and Filter Controls */}
         <div className="flex flex-col md:flex-row gap-4 mb-4">
           <form onSubmit={handleSearch} className="flex-1">
@@ -174,7 +183,7 @@ export default function PrescriptionList({
           <div className="flex gap-2">
             <select
               value={groupBy}
-              onChange={(e) => setGroupBy(e.target.value as 'patient' | 'appointment' | 'date')}
+              onChange={(e) => setGroupBy(e.target.value as "patient" | "appointment" | "date")}
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="date">Group by Date</option>
@@ -184,7 +193,7 @@ export default function PrescriptionList({
 
             <select
               value={sortOrder}
-              onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc')}
+              onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="desc">Newest First</option>
@@ -200,7 +209,7 @@ export default function PrescriptionList({
             </span>
             <button
               onClick={() => {
-                setSearchTerm('');
+                setSearchTerm("");
                 fetchPrescriptions();
               }}
               className="text-blue-600 hover:text-blue-800 text-sm"
@@ -221,11 +230,14 @@ export default function PrescriptionList({
             <div key={groupKey} className="border border-gray-200 rounded-lg overflow-hidden">
               <div className="bg-gray-50 px-4 py-2 border-b border-gray-200">
                 <h3 className="font-semibold text-gray-800">
-                  {groupBy === 'patient' ? `Patient: ${groupKey}` :
-                   groupBy === 'appointment' ? `Appointment: ${groupKey}` :
-                   `Date: ${groupKey}`}
+                  {groupBy === "patient"
+                    ? `Patient: ${groupKey}`
+                    : groupBy === "appointment"
+                      ? `Appointment: ${groupKey}`
+                      : `Date: ${groupKey}`}
                   <span className="ml-2 text-sm text-gray-600">
-                    ({groupPrescriptions.length} prescription{groupPrescriptions.length !== 1 ? 's' : ''})
+                    ({groupPrescriptions.length} prescription
+                    {groupPrescriptions.length !== 1 ? "s" : ""})
                   </span>
                 </h3>
               </div>
@@ -248,10 +260,16 @@ export default function PrescriptionList({
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm text-gray-600 mb-2">
-                          <div><strong>Patient:</strong> {prescription.patientName}</div>
-                          <div><strong>Date:</strong> {formatDate(prescription.prescriptionDate)}</div>
+                          <div>
+                            <strong>Patient:</strong> {prescription.patientName}
+                          </div>
+                          <div>
+                            <strong>Date:</strong> {formatDate(prescription.prescriptionDate)}
+                          </div>
                           {prescription.appointmentId && (
-                            <div><strong>Appointment:</strong> {prescription.appointmentId}</div>
+                            <div>
+                              <strong>Appointment:</strong> {prescription.appointmentId}
+                            </div>
                           )}
                         </div>
 

@@ -11,13 +11,13 @@ interface DoctorForm {
   phone: string;
   password: string;
   confirmPassword: string;
-  
+
   // Professional Information
   medicalLicense: string;
   specialty: string;
   experience: string;
   hospitalAffiliation: string;
-  
+
   // Agreement
   agreeToTerms: boolean;
   agreeToPrivacy: boolean;
@@ -36,7 +36,7 @@ const specialties = [
   "Psychiatry",
   "Radiology",
   "Surgery",
-  "Other"
+  "Other",
 ];
 
 const experienceOptions = [
@@ -45,7 +45,7 @@ const experienceOptions = [
   "3-5 years",
   "5-10 years",
   "10-15 years",
-  "15+ years"
+  "15+ years",
 ];
 
 export default function DoctorSignup() {
@@ -62,7 +62,7 @@ export default function DoctorSignup() {
     experience: "",
     hospitalAffiliation: "",
     agreeToTerms: false,
-    agreeToPrivacy: false
+    agreeToPrivacy: false,
   });
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -76,7 +76,7 @@ export default function DoctorSignup() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    if (type === 'checkbox') {
+    if (type === "checkbox") {
       const checked = (e.target as HTMLInputElement).checked;
       setForm({ ...form, [name]: checked });
     } else {
@@ -92,25 +92,29 @@ export default function DoctorSignup() {
 
   const validateStep = (step: number): boolean => {
     const newErrors: Record<string, string> = {};
-    
+
     if (step === 1) {
       if (!form.firstName.trim()) newErrors.firstName = "First name is required";
       if (!form.lastName.trim()) newErrors.lastName = "Last name is required";
       if (!form.email.trim()) newErrors.email = "Email is required";
-      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) newErrors.email = "Invalid email format";
+      else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email))
+        newErrors.email = "Invalid email format";
       if (!form.phone.trim()) newErrors.phone = "Phone number is required";
       if (!form.password) newErrors.password = "Password is required";
-      else if (form.password.length < 8) newErrors.password = "Password must be at least 8 characters";
-      if (form.password !== form.confirmPassword) newErrors.confirmPassword = "Passwords do not match";
+      else if (form.password.length < 8)
+        newErrors.password = "Password must be at least 8 characters";
+      if (form.password !== form.confirmPassword)
+        newErrors.confirmPassword = "Passwords do not match";
     } else if (step === 2) {
-      if (!form.medicalLicense.trim()) newErrors.medicalLicense = "Medical license number is required";
+      if (!form.medicalLicense.trim())
+        newErrors.medicalLicense = "Medical license number is required";
       if (!form.specialty) newErrors.specialty = "Specialty is required";
       if (!form.experience) newErrors.experience = "Experience level is required";
     } else if (step === 3) {
       if (!form.agreeToTerms) newErrors.agreeToTerms = "You must agree to the terms";
       if (!form.agreeToPrivacy) newErrors.agreeToPrivacy = "You must agree to the privacy policy";
     }
-    
+
     setErrors(newErrors as any);
     return Object.keys(newErrors).length === 0;
   };
@@ -128,14 +132,14 @@ export default function DoctorSignup() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateStep(3)) return;
-    
+
     setLoading(true);
     try {
       // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise((resolve) => setTimeout(resolve, 2000));
       setSuccess(true);
     } catch (error) {
-      console.error('Signup failed:', error);
+      console.error("Signup failed:", error);
     } finally {
       setLoading(false);
     }
@@ -162,19 +166,37 @@ export default function DoctorSignup() {
         <div className="relative z-10 bg-white/80 backdrop-blur-lg p-8 rounded-3xl shadow-2xl w-full max-w-md border border-white/20">
           <div className="text-center">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              <svg
+                className="w-8 h-8 text-green-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 13l4 4L19 7"
+                />
               </svg>
             </div>
             <h2 className="text-2xl font-bold text-gray-800 mb-2">Welcome to Our Team!</h2>
-            <p className="text-gray-600 mb-6">Your account has been created successfully. Please check your email for verification instructions.</p>
-            <Link 
-              href="/doctor/login" 
+            <p className="text-gray-600 mb-6">
+              Your account has been created successfully. Please check your email for verification
+              instructions.
+            </p>
+            <Link
+              href="/doctor/login"
               className="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl font-semibold hover:bg-blue-700 transition-all duration-200 transform hover:scale-105"
             >
               Continue to Login
               <svg className="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
               </svg>
             </Link>
           </div>
@@ -186,7 +208,7 @@ export default function DoctorSignup() {
   const renderStep1 = () => (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold text-gray-800 mb-4">Personal Information</h3>
-      
+
       <div className="grid grid-cols-2 gap-4">
         <div>
           <input
@@ -196,7 +218,9 @@ export default function DoctorSignup() {
             value={form.firstName}
             onChange={handleChange}
             className={`w-full px-4 py-3 border rounded-xl transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-              errors.firstName ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+              errors.firstName
+                ? "border-red-500 bg-red-50"
+                : "border-gray-300 hover:border-gray-400"
             }`}
           />
           {errors.firstName && <p className="text-red-500 text-sm mt-1">{errors.firstName}</p>}
@@ -209,7 +233,7 @@ export default function DoctorSignup() {
             value={form.lastName}
             onChange={handleChange}
             className={`w-full px-4 py-3 border rounded-xl transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-              errors.lastName ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+              errors.lastName ? "border-red-500 bg-red-50" : "border-gray-300 hover:border-gray-400"
             }`}
           />
           {errors.lastName && <p className="text-red-500 text-sm mt-1">{errors.lastName}</p>}
@@ -224,7 +248,7 @@ export default function DoctorSignup() {
           value={form.email}
           onChange={handleChange}
           className={`w-full px-4 py-3 border rounded-xl transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-            errors.email ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+            errors.email ? "border-red-500 bg-red-50" : "border-gray-300 hover:border-gray-400"
           }`}
         />
         {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
@@ -238,7 +262,7 @@ export default function DoctorSignup() {
           value={form.phone}
           onChange={handleChange}
           className={`w-full px-4 py-3 border rounded-xl transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-            errors.phone ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+            errors.phone ? "border-red-500 bg-red-50" : "border-gray-300 hover:border-gray-400"
           }`}
         />
         {errors.phone && <p className="text-red-500 text-sm mt-1">{errors.phone}</p>}
@@ -252,7 +276,7 @@ export default function DoctorSignup() {
           value={form.password}
           onChange={handleChange}
           className={`w-full px-4 py-3 pr-12 border rounded-xl transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-            errors.password ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+            errors.password ? "border-red-500 bg-red-50" : "border-gray-300 hover:border-gray-400"
           }`}
         />
         <button
@@ -262,12 +286,27 @@ export default function DoctorSignup() {
         >
           {showPassword ? (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.878 9.878L3 3m6.878 6.878L21 21"
+              />
             </svg>
           ) : (
             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
+              />
             </svg>
           )}
         </button>
@@ -282,10 +321,14 @@ export default function DoctorSignup() {
           value={form.confirmPassword}
           onChange={handleChange}
           className={`w-full px-4 py-3 border rounded-xl transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-            errors.confirmPassword ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+            errors.confirmPassword
+              ? "border-red-500 bg-red-50"
+              : "border-gray-300 hover:border-gray-400"
           }`}
         />
-        {errors.confirmPassword && <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>}
+        {errors.confirmPassword && (
+          <p className="text-red-500 text-sm mt-1">{errors.confirmPassword}</p>
+        )}
       </div>
     </div>
   );
@@ -293,7 +336,7 @@ export default function DoctorSignup() {
   const renderStep2 = () => (
     <div className="space-y-4">
       <h3 className="text-lg font-semibold text-gray-800 mb-4">Professional Information</h3>
-      
+
       <div>
         <input
           name="medicalLicense"
@@ -302,10 +345,14 @@ export default function DoctorSignup() {
           value={form.medicalLicense}
           onChange={handleChange}
           className={`w-full px-4 py-3 border rounded-xl transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-            errors.medicalLicense ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+            errors.medicalLicense
+              ? "border-red-500 bg-red-50"
+              : "border-gray-300 hover:border-gray-400"
           }`}
         />
-        {errors.medicalLicense && <p className="text-red-500 text-sm mt-1">{errors.medicalLicense}</p>}
+        {errors.medicalLicense && (
+          <p className="text-red-500 text-sm mt-1">{errors.medicalLicense}</p>
+        )}
       </div>
 
       <div>
@@ -314,12 +361,14 @@ export default function DoctorSignup() {
           value={form.specialty}
           onChange={handleChange}
           className={`w-full px-4 py-3 border rounded-xl transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-            errors.specialty ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+            errors.specialty ? "border-red-500 bg-red-50" : "border-gray-300 hover:border-gray-400"
           }`}
         >
           <option value="">Select Your Specialty</option>
           {specialties.map((specialty) => (
-            <option key={specialty} value={specialty}>{specialty}</option>
+            <option key={specialty} value={specialty}>
+              {specialty}
+            </option>
           ))}
         </select>
         {errors.specialty && <p className="text-red-500 text-sm mt-1">{errors.specialty}</p>}
@@ -331,12 +380,14 @@ export default function DoctorSignup() {
           value={form.experience}
           onChange={handleChange}
           className={`w-full px-4 py-3 border rounded-xl transition-all duration-200 focus:ring-2 focus:ring-blue-500 focus:border-transparent ${
-            errors.experience ? 'border-red-500 bg-red-50' : 'border-gray-300 hover:border-gray-400'
+            errors.experience ? "border-red-500 bg-red-50" : "border-gray-300 hover:border-gray-400"
           }`}
         >
           <option value="">Years of Experience</option>
           {experienceOptions.map((exp) => (
-            <option key={exp} value={exp}>{exp}</option>
+            <option key={exp} value={exp}>
+              {exp}
+            </option>
           ))}
         </select>
         {errors.experience && <p className="text-red-500 text-sm mt-1">{errors.experience}</p>}
@@ -358,14 +409,22 @@ export default function DoctorSignup() {
   const renderStep3 = () => (
     <div className="space-y-6">
       <h3 className="text-lg font-semibold text-gray-800 mb-4">Terms & Verification</h3>
-      
+
       <div className="bg-gray-50 p-4 rounded-xl">
         <h4 className="font-semibold text-gray-800 mb-2">Account Summary</h4>
         <div className="text-sm text-gray-600 space-y-1">
-          <p><span className="font-medium">Name:</span> {form.firstName} {form.lastName}</p>
-          <p><span className="font-medium">Email:</span> {form.email}</p>
-          <p><span className="font-medium">Specialty:</span> {form.specialty}</p>
-          <p><span className="font-medium">Experience:</span> {form.experience}</p>
+          <p>
+            <span className="font-medium">Name:</span> {form.firstName} {form.lastName}
+          </p>
+          <p>
+            <span className="font-medium">Email:</span> {form.email}
+          </p>
+          <p>
+            <span className="font-medium">Specialty:</span> {form.specialty}
+          </p>
+          <p>
+            <span className="font-medium">Experience:</span> {form.experience}
+          </p>
         </div>
       </div>
 
@@ -380,7 +439,12 @@ export default function DoctorSignup() {
           />
           <span className="text-sm text-gray-700">
             I agree to the{" "}
-            <a href="/terms" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">
+            <a
+              href="/terms"
+              className="text-blue-600 hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Terms of Service
             </a>{" "}
             and understand my responsibilities as a healthcare provider on this platform.
@@ -398,7 +462,12 @@ export default function DoctorSignup() {
           />
           <span className="text-sm text-gray-700">
             I agree to the{" "}
-            <a href="/privacy" className="text-blue-600 hover:underline" target="_blank" rel="noopener noreferrer">
+            <a
+              href="/privacy"
+              className="text-blue-600 hover:underline"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
               Privacy Policy
             </a>{" "}
             and consent to the processing of my personal and professional data.
@@ -409,8 +478,18 @@ export default function DoctorSignup() {
 
       <div className="bg-blue-50 p-4 rounded-xl">
         <div className="flex items-start space-x-3">
-          <svg className="w-5 h-5 text-blue-600 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          <svg
+            className="w-5 h-5 text-blue-600 mt-0.5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
           </svg>
           <div className="text-sm text-blue-800">
             <p className="font-medium mb-1">Account Verification</p>
@@ -435,8 +514,18 @@ export default function DoctorSignup() {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center space-x-2 mb-4">
             <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-              <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              <svg
+                className="w-6 h-6 text-white"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
               </svg>
             </div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-green-600 bg-clip-text text-transparent">
@@ -451,23 +540,30 @@ export default function DoctorSignup() {
           <div className="flex items-center justify-between mb-2">
             {[1, 2, 3].map((step) => (
               <div key={step} className="flex items-center">
-                <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200 ${
-                  currentStep >= step 
-                    ? 'bg-blue-600 text-white' 
-                    : 'bg-gray-200 text-gray-500'
-                }`}>
+                <div
+                  className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold transition-all duration-200 ${
+                    currentStep >= step ? "bg-blue-600 text-white" : "bg-gray-200 text-gray-500"
+                  }`}
+                >
                   {currentStep > step ? (
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
                     </svg>
                   ) : (
                     step
                   )}
                 </div>
                 {step < 3 && (
-                  <div className={`w-16 h-1 mx-2 transition-all duration-200 ${
-                    currentStep > step ? 'bg-blue-600' : 'bg-gray-200'
-                  }`}></div>
+                  <div
+                    className={`w-16 h-1 mx-2 transition-all duration-200 ${
+                      currentStep > step ? "bg-blue-600" : "bg-gray-200"
+                    }`}
+                  ></div>
                 )}
               </div>
             ))}
@@ -480,7 +576,16 @@ export default function DoctorSignup() {
         </div>
 
         {/* Form Steps */}
-        <form onSubmit={currentStep === 3 ? handleSubmit : (e) => { e.preventDefault(); handleNext(); }}>
+        <form
+          onSubmit={
+            currentStep === 3
+              ? handleSubmit
+              : (e) => {
+                  e.preventDefault();
+                  handleNext();
+                }
+          }
+        >
           {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}
@@ -493,8 +598,8 @@ export default function DoctorSignup() {
               disabled={currentStep === 1}
               className={`px-6 py-3 rounded-xl font-semibold transition-all duration-200 ${
                 currentStep === 1
-                  ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  : 'bg-gray-200 text-gray-700 hover:bg-gray-300'
+                  ? "bg-gray-100 text-gray-400 cursor-not-allowed"
+                  : "bg-gray-200 text-gray-700 hover:bg-gray-300"
               }`}
             >
               Previous
@@ -512,9 +617,14 @@ export default function DoctorSignup() {
                 </>
               ) : (
                 <>
-                  <span>{currentStep === 3 ? 'Create Account' : 'Next'}</span>
+                  <span>{currentStep === 3 ? "Create Account" : "Next"}</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 5l7 7-7 7"
+                    />
                   </svg>
                 </>
               )}

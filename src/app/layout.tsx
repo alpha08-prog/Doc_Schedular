@@ -10,11 +10,7 @@ export const metadata: Metadata = {
   description: "Doctor Appointment Booking UI",
 };
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <body className={`${inter.className} bg-gray-50 min-h-screen`}>

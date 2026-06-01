@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import type { Review } from '../../../types/review';
-import { reviewStore } from './store';
+import { NextRequest, NextResponse } from "next/server";
+import type { Review } from "../../../types/review";
+import { reviewStore } from "./store";
 
 function buildStats(items: Review[]) {
   const total = items.length;
@@ -24,37 +24,47 @@ function buildStats(items: Review[]) {
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
-    const doctorId = searchParams.get('doctorId');
-    const patientId = searchParams.get('patientId');
-    const appointmentId = searchParams.get('appointmentId');
-    const page = parseInt(searchParams.get('page') || '1', 10);
-    const pageSize = parseInt(searchParams.get('pageSize') || '10', 10);
-    const ratingMin = searchParams.get('ratingMin');
-    const ratingMax = searchParams.get('ratingMax');
-    const sort = (searchParams.get('sort') || 'newest') as 'newest'|'oldest'|'highest'|'lowest';
+    const doctorId = searchParams.get("doctorId");
+    const patientId = searchParams.get("patientId");
+    const appointmentId = searchParams.get("appointmentId");
+    const page = parseInt(searchParams.get("page") || "1", 10);
+    const pageSize = parseInt(searchParams.get("pageSize") || "10", 10);
+    const ratingMin = searchParams.get("ratingMin");
+    const ratingMax = searchParams.get("ratingMax");
+    const sort = (searchParams.get("sort") || "newest") as
+      | "newest"
+      | "oldest"
+      | "highest"
+      | "lowest";
 
     let data = [...reviewStore.all()];
-    if (doctorId) data = data.filter(r => r.doctorId === doctorId);
-    if (patientId) data = data.filter(r => r.patientId === patientId);
-    if (appointmentId) data = data.filter(r => r.appointmentId === appointmentId);
+    if (doctorId) data = data.filter((r) => r.doctorId === doctorId);
+    if (patientId) data = data.filter((r) => r.patientId === patientId);
+    if (appointmentId) data = data.filter((r) => r.appointmentId === appointmentId);
 
     // Rating filters
     if (ratingMin) {
       const min = Math.max(1, Math.min(5, parseInt(ratingMin, 10)));
-      data = data.filter(r => r.rating >= min);
+      data = data.filter((r) => r.rating >= min);
     }
     if (ratingMax) {
       const max = Math.max(1, Math.min(5, parseInt(ratingMax, 10)));
-      data = data.filter(r => r.rating <= max);
+      data = data.filter((r) => r.rating <= max);
     }
 
     // Sorting
-    if (sort === 'oldest') {
+    if (sort === "oldest") {
       data.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-    } else if (sort === 'highest') {
-      data.sort((a, b) => b.rating - a.rating || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    } else if (sort === 'lowest') {
-      data.sort((a, b) => a.rating - b.rating || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+    } else if (sort === "highest") {
+      data.sort(
+        (a, b) =>
+          b.rating - a.rating || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
+    } else if (sort === "lowest") {
+      data.sort(
+        (a, b) =>
+          a.rating - b.rating || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      );
     } else {
       // newest
       data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
@@ -68,7 +78,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ success: true, data: paged, page, pageSize, ...stats });
   } catch (e) {
-    return NextResponse.json({ success: false, error: 'Failed to fetch reviews' }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Failed to fetch reviews" }, { status: 500 });
   }
 }
 
@@ -77,7 +87,7 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const now = new Date().toISOString();
     if (!body.rating || body.rating < 1 || body.rating > 5) {
-      return NextResponse.json({ success: false, error: 'Rating must be 1-5' }, { status: 400 });
+      return NextResponse.json({ success: false, error: "Rating must be 1-5" }, { status: 400 });
     }
     const created = reviewStore.create({
       appointmentId: body.appointmentId,
@@ -85,10 +95,10 @@ export async function POST(request: NextRequest) {
       patientName: body.patientName,
       doctorId: body.doctorId,
       rating: Number(body.rating),
-      comment: body.comment || '',
-    } as Omit<Review,'id'|'createdAt'|'updatedAt'>);
+      comment: body.comment || "",
+    } as Omit<Review, "id" | "createdAt" | "updatedAt">);
     return NextResponse.json({ success: true, data: created }, { status: 201 });
   } catch (e) {
-    return NextResponse.json({ success: false, error: 'Failed to create review' }, { status: 500 });
+    return NextResponse.json({ success: false, error: "Failed to create review" }, { status: 500 });
   }
 }

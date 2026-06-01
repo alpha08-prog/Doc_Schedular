@@ -137,12 +137,12 @@
     flex-direction: column;
     gap: 8px;
   }
-  
+
   .rbc-event {
     font-size: 11px;
     padding: 1px 4px;
   }
-  
+
   .rbc-header {
     padding: 8px 4px;
     font-size: 14px;

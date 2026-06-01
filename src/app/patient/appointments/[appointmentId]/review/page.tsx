@@ -18,7 +18,13 @@ type Review = {
   updatedAt: string;
 };
 
-export default function AppointmentReviewPage({ params, searchParams }: { params: { appointmentId: string }; searchParams: Record<string, string> }) {
+export default function AppointmentReviewPage({
+  params,
+  searchParams,
+}: {
+  params: { appointmentId: string };
+  searchParams: Record<string, string>;
+}) {
   const { appointmentId } = params;
   const patientId = searchParams.patientId || "patient-1";
   const doctorId = searchParams.doctorId || "1";
@@ -53,7 +59,9 @@ export default function AppointmentReviewPage({ params, searchParams }: { params
     async function load() {
       try {
         setLoading(true);
-        const res = await fetch(`/api/reviews?appointmentId=${encodeURIComponent(appointmentId)}&patientId=${encodeURIComponent(patientId)}`);
+        const res = await fetch(
+          `/api/reviews?appointmentId=${encodeURIComponent(appointmentId)}&patientId=${encodeURIComponent(patientId)}`
+        );
         const json = await res.json();
         if (json.success && json.data && json.data.length > 0) {
           const r = json.data[0] as Review;
@@ -88,7 +96,14 @@ export default function AppointmentReviewPage({ params, searchParams }: { params
         const res = await fetch(`/api/reviews`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ appointmentId, patientId, doctorId, patientName, rating, comment }),
+          body: JSON.stringify({
+            appointmentId,
+            patientId,
+            doctorId,
+            patientName,
+            rating,
+            comment,
+          }),
         });
         const json = await res.json();
         if (!json.success) throw new Error(json.error || "Failed to create");
@@ -125,13 +140,22 @@ export default function AppointmentReviewPage({ params, searchParams }: { params
       <div className="mb-6 flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Appointment Review</h1>
-          <p className="text-gray-600 text-sm mt-1">Appointment: <span className="font-mono">{appointmentId}</span></p>
+          <p className="text-gray-600 text-sm mt-1">
+            Appointment: <span className="font-mono">{appointmentId}</span>
+          </p>
         </div>
-        <Link href="/" className="px-3 py-2 rounded border bg-white hover:bg-gray-50 shadow-sm text-sm">Home</Link>
+        <Link
+          href="/"
+          className="px-3 py-2 rounded border bg-white hover:bg-gray-50 shadow-sm text-sm"
+        >
+          Home
+        </Link>
       </div>
 
       {error && (
-        <div className="mb-4 rounded-md bg-red-50 text-red-700 px-3 py-2 text-sm border border-red-200">{error}</div>
+        <div className="mb-4 rounded-md bg-red-50 text-red-700 px-3 py-2 text-sm border border-red-200">
+          {error}
+        </div>
       )}
 
       {loading ? (
@@ -147,9 +171,7 @@ export default function AppointmentReviewPage({ params, searchParams }: { params
               <label className="block text-sm font-medium mb-1">Your Rating</label>
               <div className="flex items-center gap-3">
                 <StarRating value={rating} onChange={setRating} />
-                {rating > 0 && (
-                  <span className="text-xs text-gray-600">{rating} / 5</span>
-                )}
+                {rating > 0 && <span className="text-xs text-gray-600">{rating} / 5</span>}
               </div>
             </div>
 
@@ -161,7 +183,9 @@ export default function AppointmentReviewPage({ params, searchParams }: { params
                 onChange={(e) => setComment(e.target.value)}
                 placeholder="Share your experience..."
               />
-              <div className="text-xs text-gray-500 mt-1">Be constructive and respectful. Reviews help doctors and future patients.</div>
+              <div className="text-xs text-gray-500 mt-1">
+                Be constructive and respectful. Reviews help doctors and future patients.
+              </div>
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
@@ -183,7 +207,9 @@ export default function AppointmentReviewPage({ params, searchParams }: { params
                 </button>
               )}
               {existing && (
-                <span className="text-xs text-gray-500 ml-2">Edit/Delete allowed: {canModify ? remainingText + " left" : "window expired"}</span>
+                <span className="text-xs text-gray-500 ml-2">
+                  Edit/Delete allowed: {canModify ? remainingText + " left" : "window expired"}
+                </span>
               )}
             </div>
           </form>

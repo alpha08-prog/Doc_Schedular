@@ -116,9 +116,18 @@ export default function PatientProfilePage() {
           <p className="text-gray-600 text-sm">Manage your personal information</p>
         </div>
         <div className="flex items-center gap-2">
-          <Link href="/" className="px-3 py-2 rounded border hover:bg-gray-50">Home</Link>
-          <Link href="/patient" className="px-3 py-2 rounded border hover:bg-gray-50">Patient</Link>
-          <Link href={`/doctor/patients/${profile.patientId}/history`} className="px-3 py-2 rounded border hover:bg-gray-50">History</Link>
+          <Link href="/" className="px-3 py-2 rounded border hover:bg-gray-50">
+            Home
+          </Link>
+          <Link href="/patient" className="px-3 py-2 rounded border hover:bg-gray-50">
+            Patient
+          </Link>
+          <Link
+            href={`/doctor/patients/${profile.patientId}/history`}
+            className="px-3 py-2 rounded border hover:bg-gray-50"
+          >
+            History
+          </Link>
         </div>
       </div>
 
@@ -147,7 +156,10 @@ export default function PatientProfilePage() {
                 <div className="text-sm text-gray-500">Patient ID</div>
                 <div className="font-mono text-sm">{profile.patientId}</div>
               </div>
-              <button onClick={onEdit} className="px-3 py-1.5 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700">
+              <button
+                onClick={onEdit}
+                className="px-3 py-1.5 rounded bg-indigo-600 text-white text-sm hover:bg-indigo-700"
+              >
                 Edit
               </button>
             </div>
@@ -222,7 +234,12 @@ export default function PatientProfilePage() {
                   min={0}
                   className="w-full border rounded px-3 py-2"
                   value={profile.age ?? ""}
-                  onChange={(e) => setProfile({ ...profile, age: e.target.value ? parseInt(e.target.value, 10) : undefined })}
+                  onChange={(e) =>
+                    setProfile({
+                      ...profile,
+                      age: e.target.value ? parseInt(e.target.value, 10) : undefined,
+                    })
+                  }
                 />
               </div>
               <div>
@@ -258,8 +275,12 @@ export default function PatientProfilePage() {
 
       {/* Helpful Links */}
       <div className="mt-6 flex flex-wrap gap-2">
-        <Link href="/booking" className="px-3 py-2 rounded border hover:bg-gray-50">Book Appointment</Link>
-        <Link href="/records" className="px-3 py-2 rounded border hover:bg-gray-50">Medical Records</Link>
+        <Link href="/booking" className="px-3 py-2 rounded border hover:bg-gray-50">
+          Book Appointment
+        </Link>
+        <Link href="/records" className="px-3 py-2 rounded border hover:bg-gray-50">
+          Medical Records
+        </Link>
       </div>
     </div>
   );

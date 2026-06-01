@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   const { email, password } = await request.json();
@@ -7,11 +7,11 @@ export async function POST(request: Request) {
       success: true,
       user: {
         id: 1,
-        name: 'John Doe',
+        name: "John Doe",
         email,
-        token: 'mock-token-123',
+        token: "mock-token-123",
       },
     });
   }
-  return NextResponse.json({ success: false, error: 'Invalid credentials' }, { status: 401 });
+  return NextResponse.json({ success: false, error: "Invalid credentials" }, { status: 401 });
 }

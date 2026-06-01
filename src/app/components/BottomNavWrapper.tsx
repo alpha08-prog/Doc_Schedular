@@ -11,4 +11,4 @@ const BottomNavWrapper = () => {
   return <BottomNavBar />;
 };
 
-export default BottomNavWrapper; 
+export default BottomNavWrapper;

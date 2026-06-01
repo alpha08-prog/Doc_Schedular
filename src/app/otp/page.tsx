@@ -7,7 +7,7 @@ export default function OTPPage() {
 
   React.useEffect(() => {
     if (timer > 0) {
-      const interval = setInterval(() => setTimer(t => t - 1), 1000);
+      const interval = setInterval(() => setTimer((t) => t - 1), 1000);
       return () => clearInterval(interval);
     }
   }, [timer]);
@@ -42,9 +42,9 @@ export default function OTPPage() {
               inputMode="numeric"
               maxLength={1}
               value={digit}
-              onChange={e => handleChange(idx, e.target.value)}
+              onChange={(e) => handleChange(idx, e.target.value)}
               className="w-12 h-12 text-center text-2xl border-2 border-primary/40 rounded-xl focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition font-semibold bg-[#F7FAFC]"
-              style={{ fontFamily: 'Poppins, ui-sans-serif, system-ui, sans-serif' }}
+              style={{ fontFamily: "Poppins, ui-sans-serif, system-ui, sans-serif" }}
             />
           ))}
         </div>
@@ -56,11 +56,11 @@ export default function OTPPage() {
         <button
           type="button"
           className="w-full bg-primary text-white font-semibold py-3 rounded-xl shadow-md hover:bg-[#3bb2cb] transition text-base mb-2"
-          style={{ fontFamily: 'Poppins, ui-sans-serif, system-ui, sans-serif' }}
+          style={{ fontFamily: "Poppins, ui-sans-serif, system-ui, sans-serif" }}
         >
           Verify
         </button>
       </div>
     </div>
   );
-} 
+}

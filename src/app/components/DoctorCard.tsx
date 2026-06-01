@@ -14,17 +14,17 @@ interface DoctorCardProps {
   onClick?: () => void;
 }
 
-const DoctorCard: React.FC<DoctorCardProps> = ({ 
-  name, 
-  specialty, 
-  image, 
-  status, 
-  bio, 
-  time, 
-  rating = 4.8, 
-  experience = "5+ years", 
-  selected, 
-  onClick 
+const DoctorCard: React.FC<DoctorCardProps> = ({
+  name,
+  specialty,
+  image,
+  status,
+  bio,
+  time,
+  rating = 4.8,
+  experience = "5+ years",
+  selected,
+  onClick,
 }) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const [imageError, setImageError] = useState(false);
@@ -36,23 +36,23 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
 
   const getStatusColor = (status: string) => {
     switch (status.toLowerCase()) {
-      case 'available':
-        return 'bg-green-100 text-green-700 border-green-200';
-      case 'busy':
-        return 'bg-red-100 text-red-700 border-red-200';
-      case 'offline':
-        return 'bg-gray-100 text-gray-700 border-gray-200';
+      case "available":
+        return "bg-green-100 text-green-700 border-green-200";
+      case "busy":
+        return "bg-red-100 text-red-700 border-red-200";
+      case "offline":
+        return "bg-gray-100 text-gray-700 border-gray-200";
       default:
-        return 'bg-blue-100 text-blue-700 border-blue-200';
+        return "bg-blue-100 text-blue-700 border-blue-200";
     }
   };
 
   return (
     <div
       className={`group relative cursor-pointer bg-white rounded-2xl shadow-sm border transition-all duration-300 hover:shadow-xl hover:-translate-y-1 active:scale-[0.98] ${
-        selected 
-          ? 'border-blue-500 ring-2 ring-blue-200 shadow-lg' 
-          : 'border-gray-200 hover:border-blue-300'
+        selected
+          ? "border-blue-500 ring-2 ring-blue-200 shadow-lg"
+          : "border-gray-200 hover:border-blue-300"
       }`}
       onClick={onClick}
     >
@@ -71,25 +71,35 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
           <div className="relative flex-shrink-0">
             <div className="w-20 h-20 rounded-2xl overflow-hidden bg-gray-100 border-2 border-gray-100 group-hover:border-blue-200 transition-colors duration-200">
               {!imageError ? (
-                <Image 
-                  src={image} 
-                  alt={name} 
-                  width={80} 
-                  height={80} 
-                  className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105" 
+                <Image
+                  src={image}
+                  alt={name}
+                  width={80}
+                  height={80}
+                  className="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
                   onError={() => setImageError(true)}
                 />
               ) : (
                 <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-blue-100 to-blue-200">
-                  <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                  <svg
+                    className="w-8 h-8 text-blue-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                    />
                   </svg>
                 </div>
               )}
             </div>
-            
+
             {/* Online status indicator */}
-            {status.toLowerCase() === 'available' && (
+            {status.toLowerCase() === "available" && (
               <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-white animate-pulse" />
             )}
           </div>
@@ -104,7 +114,7 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
                 <p className="text-sm font-medium text-blue-600 leading-tight mb-1 truncate">
                   {specialty}
                 </p>
-                
+
                 {/* Rating and Experience */}
                 <div className="flex items-center gap-3 mb-2">
                   <div className="flex items-center gap-1">
@@ -117,40 +127,60 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
                   <span className="text-xs text-gray-500">{experience}</span>
                 </div>
               </div>
-              
+
               {/* Favorite Button */}
-              <button 
+              <button
                 className={`flex-shrink-0 p-2 rounded-xl transition-all duration-200 hover:scale-110 active:scale-95 ${
-                  isFavorite 
-                    ? 'bg-red-50 text-red-500 hover:bg-red-100' 
-                    : 'bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-red-400'
+                  isFavorite
+                    ? "bg-red-50 text-red-500 hover:bg-red-100"
+                    : "bg-gray-50 text-gray-400 hover:bg-gray-100 hover:text-red-400"
                 }`}
                 onClick={handleFavoriteClick}
               >
-                <svg className="w-5 h-5" fill={isFavorite ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 000-6.364L12 4.636 4.318 6.318z" />
+                <svg
+                  className="w-5 h-5"
+                  fill={isFavorite ? "currentColor" : "none"}
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 000-6.364L12 4.636 4.318 6.318z"
+                  />
                 </svg>
               </button>
             </div>
-            
+
             {/* Bio */}
-            <p className="text-sm text-gray-600 leading-relaxed mb-3 line-clamp-2">
-              {bio}
-            </p>
-            
+            <p className="text-sm text-gray-600 leading-relaxed mb-3 line-clamp-2">{bio}</p>
+
             {/* Status and Time */}
             <div className="flex items-center justify-between gap-2">
-              <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(status)}`}>
-                <span className={`w-2 h-2 rounded-full mr-2 ${
-                  status.toLowerCase() === 'available' ? 'bg-green-500' :
-                  status.toLowerCase() === 'busy' ? 'bg-red-500' : 'bg-gray-400'
-                }`} />
+              <span
+                className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium border ${getStatusColor(status)}`}
+              >
+                <span
+                  className={`w-2 h-2 rounded-full mr-2 ${
+                    status.toLowerCase() === "available"
+                      ? "bg-green-500"
+                      : status.toLowerCase() === "busy"
+                        ? "bg-red-500"
+                        : "bg-gray-400"
+                  }`}
+                />
                 {status}
               </span>
-              
+
               <div className="flex items-center gap-1 text-xs text-gray-500 bg-gray-50 px-3 py-1 rounded-full">
                 <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
                 </svg>
                 {time}
               </div>
@@ -158,7 +188,7 @@ const DoctorCard: React.FC<DoctorCardProps> = ({
           </div>
         </div>
       </div>
-      
+
       {/* Hover effect overlay */}
       <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-blue-500/5 to-green-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
     </div>

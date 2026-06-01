@@ -1,6 +1,6 @@
-import { NextRequest, NextResponse } from 'next/server';
-import type { Prescription } from '../../../../types/prescription';
-import { prescriptionStore } from '../store';
+import { NextRequest, NextResponse } from "next/server";
+import type { Prescription } from "../../../../types/prescription";
+import { prescriptionStore } from "../store";
 
 // GET - Fetch a single prescription by ID
 export async function GET(request: NextRequest, context: { params: { id: string } }) {
@@ -9,15 +9,12 @@ export async function GET(request: NextRequest, context: { params: { id: string 
   const prescription = prescriptionStore.findById(id);
 
   if (!prescription) {
-    return NextResponse.json(
-      { success: false, error: 'Prescription not found' },
-      { status: 404 }
-    );
+    return NextResponse.json({ success: false, error: "Prescription not found" }, { status: 404 });
   }
 
   return NextResponse.json({
     success: true,
-    data: prescription
+    data: prescription,
   });
 }
 
@@ -28,10 +25,7 @@ export async function PUT(request: NextRequest, context: { params: { id: string 
   const existing = prescriptionStore.findById(id);
 
   if (!existing) {
-    return NextResponse.json(
-      { success: false, error: 'Prescription not found' },
-      { status: 404 }
-    );
+    return NextResponse.json({ success: false, error: "Prescription not found" }, { status: 404 });
   }
 
   const updatedPrescription = prescriptionStore.update(id, {
@@ -45,7 +39,7 @@ export async function PUT(request: NextRequest, context: { params: { id: string 
   return NextResponse.json({
     success: true,
     data: updatedPrescription!,
-    message: 'Prescription updated successfully'
+    message: "Prescription updated successfully",
   });
 }
 
@@ -55,10 +49,7 @@ export async function DELETE(request: NextRequest, context: { params: { id: stri
   const existing = prescriptionStore.findById(id);
 
   if (!existing) {
-    return NextResponse.json(
-      { success: false, error: 'Prescription not found' },
-      { status: 404 }
-    );
+    return NextResponse.json({ success: false, error: "Prescription not found" }, { status: 404 });
   }
 
   const deleted = prescriptionStore.remove(id)!;
@@ -66,8 +57,6 @@ export async function DELETE(request: NextRequest, context: { params: { id: stri
   return NextResponse.json({
     success: true,
     data: deleted,
-    message: 'Prescription deleted successfully'
+    message: "Prescription deleted successfully",
   });
 }
-
-
