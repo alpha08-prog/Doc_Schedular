@@ -1,62 +1,58 @@
 "use client";
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+
+import { useState } from "react";
 import Link from "next/link";
+import { Button } from "@/components/ui/Button";
+import { Input } from "@/components/ui/Input";
+import { Card } from "@/components/ui/Card";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNotification } from "@/contexts/NotificationContext";
 
 export default function DoctorLogin() {
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [mounted, setMounted] = useState(false);
+  const { login } = useAuth();
+  const { notify } = useNotification();
+
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const router = useRouter();
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
-  };
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-    setError("");
+    if (isLoading) return;
 
+    if (!email.trim() || !password) {
+      notify("Please enter your email and password", "error");
+      return;
+    }
+
+    setIsLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1500));
-
-      // Basic validation
-      if (!form.email || !form.password) {
-        throw new Error("Please fill in all fields");
-      }
-
-      // Accept any email and password for demo/testing
-      router.push("/doctor/dashboard");
+      // login() calls the doctor endpoint, sets the auth cookie,
+      // and redirects to /doctor/dashboard on success.
+      await login(email.trim(), password, "doctor");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Login failed. Please try again.");
-    } finally {
-      setLoading(false);
+      notify(err instanceof Error ? err.message : "Login failed. Please try again.", "error");
+      setIsLoading(false);
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 via-white to-blue-50 relative overflow-hidden">
       {/* Background decorations */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-green-400 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse-slow"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse-slow"></div>
-        <div className="absolute top-40 left-40 w-60 h-60 bg-teal-400 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse-slow"></div>
+      <div className="absolute inset-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-green-400 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse-slow" />
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-blue-400 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse-slow" />
+        <div className="absolute top-40 left-40 w-60 h-60 bg-teal-400 rounded-full mix-blend-multiply filter blur-xl opacity-10 animate-pulse-slow" />
       </div>
 
-      <div className="relative z-10 min-h-screen flex items-center justify-center px-4">
+      <div className="relative z-10 min-h-screen flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
-          <div
-            className={`bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border border-white/20 p-8 ${mounted ? "animate-fade-in" : "opacity-0"}`}
+          <Card
+            padding="lg"
+            className="bg-white/80 backdrop-blur-lg rounded-3xl shadow-xl border-white/20 animate-fade-in"
           >
-            {/* Header Section */}
+            {/* Header */}
             <div className="text-center mb-8">
               <div className="inline-flex items-center justify-center w-20 h-20 bg-gradient-to-r from-green-600 to-blue-600 rounded-2xl mb-6 shadow-lg">
                 <svg
@@ -64,6 +60,7 @@ export default function DoctorLogin() {
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
+                  aria-hidden="true"
                 >
                   <path
                     strokeLinecap="round"
@@ -79,101 +76,73 @@ export default function DoctorLogin() {
               </p>
             </div>
 
-            {/* Error Message */}
-            {error && (
-              <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl animate-fade-in">
-                <div className="flex items-center gap-3">
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-6" noValidate>
+              <Input
+                label="Email Address"
+                type="email"
+                name="email"
+                autoComplete="email"
+                placeholder="Enter your professional email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                leftAddon={
                   <svg
-                    className="w-5 h-5 text-red-500 flex-shrink-0"
+                    className="w-5 h-5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
                       strokeWidth={2}
-                      d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                      d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
                     />
                   </svg>
-                  <p className="text-sm text-red-700">{error}</p>
-                </div>
-              </div>
-            )}
+                }
+              />
 
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email Input */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Email Address
-                </label>
-                <div className="relative">
-                  <input
-                    name="email"
-                    type="email"
-                    placeholder="Enter your professional email"
-                    value={form.email}
-                    onChange={handleChange}
-                    className="input-field pl-12"
-                    required
-                  />
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg
-                      className="w-5 h-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M16 12a4 4 0 10-8 0 4 4 0 008 0zm0 0v1.5a2.5 2.5 0 005 0V12a9 9 0 10-9 9m4.5-1.206a8.959 8.959 0 01-4.5 1.207"
-                      />
-                    </svg>
-                  </div>
-                </div>
-              </div>
-
-              {/* Password Input */}
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Password</label>
-                <div className="relative">
-                  <input
-                    name="password"
-                    type={showPassword ? "text" : "password"}
-                    placeholder="Enter your password"
-                    value={form.password}
-                    onChange={handleChange}
-                    className="input-field pl-12 pr-12"
-                    required
-                  />
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <svg
-                      className="w-5 h-5 text-gray-400"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
-                      />
-                    </svg>
-                  </div>
+              <Input
+                label="Password"
+                type={showPassword ? "text" : "password"}
+                name="password"
+                autoComplete="current-password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                leftAddon={
+                  <svg
+                    className="w-5 h-5"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"
+                    />
+                  </svg>
+                }
+                rightAddon={
                   <button
                     type="button"
-                    className="absolute inset-y-0 right-0 pr-3 flex items-center"
-                    onClick={() => setShowPassword(!showPassword)}
+                    onClick={() => setShowPassword((v) => !v)}
+                    className="pointer-events-auto text-gray-400 hover:text-gray-600 transition-colors focus:outline-none focus:text-green-600"
+                    aria-label={showPassword ? "Hide password" : "Show password"}
+                    aria-pressed={showPassword}
                   >
                     {showPassword ? (
                       <svg
-                        className="w-5 h-5 text-gray-400 hover:text-gray-600"
+                        className="w-5 h-5"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
+                        aria-hidden="true"
                       >
                         <path
                           strokeLinecap="round"
@@ -184,10 +153,11 @@ export default function DoctorLogin() {
                       </svg>
                     ) : (
                       <svg
-                        className="w-5 h-5 text-gray-400 hover:text-gray-600"
+                        className="w-5 h-5"
                         fill="none"
                         stroke="currentColor"
                         viewBox="0 0 24 24"
+                        aria-hidden="true"
                       >
                         <path
                           strokeLinecap="round"
@@ -204,8 +174,8 @@ export default function DoctorLogin() {
                       </svg>
                     )}
                   </button>
-                </div>
-              </div>
+                }
+              />
 
               {/* Remember Me & Forgot Password */}
               <div className="flex items-center justify-between">
@@ -224,39 +194,21 @@ export default function DoctorLogin() {
                 </Link>
               </div>
 
-              {/* Login Button */}
-              <button
+              <Button
                 type="submit"
-                className="btn-success w-full flex items-center justify-center gap-2"
-                disabled={loading}
-              >
-                {loading ? (
-                  <>
+                variant="success"
+                size="lg"
+                fullWidth
+                loading={isLoading}
+                leftIcon={
+                  !isLoading ? (
                     <svg
-                      className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
-                      xmlns="http://www.w3.org/2000/svg"
+                      className="w-5 h-5"
                       fill="none"
+                      stroke="currentColor"
                       viewBox="0 0 24 24"
+                      aria-hidden="true"
                     >
-                      <circle
-                        className="opacity-25"
-                        cx="12"
-                        cy="12"
-                        r="10"
-                        stroke="currentColor"
-                        strokeWidth="4"
-                      ></circle>
-                      <path
-                        className="opacity-75"
-                        fill="currentColor"
-                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                      ></path>
-                    </svg>
-                    Signing in...
-                  </>
-                ) : (
-                  <>
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -264,13 +216,14 @@ export default function DoctorLogin() {
                         d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"
                       />
                     </svg>
-                    Sign In to Portal
-                  </>
-                )}
-              </button>
+                  ) : undefined
+                }
+              >
+                {isLoading ? "Signing in..." : "Sign In to Portal"}
+              </Button>
             </form>
 
-            {/* Features Section */}
+            {/* Features */}
             <div className="mt-8 pt-6 border-t border-gray-200">
               <div className="grid grid-cols-2 gap-4 text-center">
                 <div className="p-3 bg-green-50 rounded-xl">
@@ -279,6 +232,7 @@ export default function DoctorLogin() {
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -295,6 +249,7 @@ export default function DoctorLogin() {
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
+                    aria-hidden="true"
                   >
                     <path
                       strokeLinecap="round"
@@ -320,7 +275,7 @@ export default function DoctorLogin() {
                 </Link>
               </p>
             </div>
-          </div>
+          </Card>
         </div>
       </div>
     </div>

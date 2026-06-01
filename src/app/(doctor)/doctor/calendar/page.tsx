@@ -5,7 +5,6 @@ import moment from "moment";
 import { DndProvider } from "react-dnd";
 import { HTML5Backend } from "react-dnd-html5-backend";
 import withDragAndDrop from "react-big-calendar/lib/addons/dragAndDrop";
-import DoctorNavBar from "@/app/components/DoctorNavBar";
 import { appointmentService, type Appointment } from "@/app/services/appointmentService";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import "react-big-calendar/lib/addons/dragAndDrop/styles.css";
@@ -375,8 +374,6 @@ export default function DoctorCalendar() {
   return (
     <DndProvider backend={HTML5Backend}>
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
-        <DoctorNavBar />
-
         <div className="max-w-7xl mx-auto px-4 py-8">
           {/* Header */}
           <div className="mb-8">

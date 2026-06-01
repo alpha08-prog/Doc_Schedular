@@ -1,7 +1,6 @@
 "use client";
 import React, { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
-import DoctorNavBar from "@/app/components/DoctorNavBar";
 
 type Appointment = {
   id: string;
@@ -152,8 +151,6 @@ export default function MedicalHistoryPage({ params }: { params: { patientId: st
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
-      <DoctorNavBar />
-
       <div className="max-w-7xl mx-auto px-4 py-6 print:px-8">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">

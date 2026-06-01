@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import DoctorNavBar from "@/app/components/DoctorNavBar";
 import PrescriptionForm from "@/app/components/PrescriptionForm";
 import PrescriptionList from "@/app/components/PrescriptionList";
 import NotificationToast from "@/app/components/NotificationToast";
@@ -119,8 +118,6 @@ export default function PrescriptionsPage() {
         onClose={() => setNotification(null)}
       />
       <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
-        <DoctorNavBar />
-
         <main className="max-w-7xl mx-auto px-4 py-6">
           {/* Header */}
           <div className="mb-8">
