@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import StarRating from "@/app/components/StarRating";
 import Link from "next/link";
 import type { Review } from "@/types/review";
+import { useAuth } from "@/contexts/AuthContext";
 
 type FetchResponse = {
   success: boolean;
@@ -19,7 +20,8 @@ export default function DoctorReviewsPage({
 }: {
   searchParams: Record<string, string>;
 }) {
-  const doctorId = searchParams.doctorId || "1";
+  const { user } = useAuth();
+  const doctorId = user?.id ?? searchParams.doctorId ?? "1";
   const [page, setPage] = useState<number>(parseInt(searchParams.page || "1", 10));
   const [pageSize, setPageSize] = useState<number>(parseInt(searchParams.pageSize || "10", 10));
   const [loading, setLoading] = useState(true);

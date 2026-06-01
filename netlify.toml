@@ -3,14 +3,20 @@
   command = "npm run build"
 
 [build.environment]
-  NODE_VERSION = "18"
+  NODE_VERSION = "20"
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# Next.js on Netlify requires the official plugin for SSR/API routes.
+# Install it with: npm install @netlify/plugin-nextjs
+# Then uncomment the block below:
+#
+# [[plugins]]
+#   package = "@netlify/plugin-nextjs"
+
+# NOTE: The SPA catch-all redirect is NOT used here because this is a
+# server-rendered Next.js app, not a static SPA. Netlify Next.js plugin
+# handles routing automatically once installed.
 
 [dev]
   command = "npm run dev"
   port = 3000
-  publish = ".next"
+  targetPort = 3000

@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
-  const { email, password } = await request.json();
+  const body = (await request.json().catch(() => ({}))) as { email?: string; password?: string };
+  const { email, password } = body;
 
   if (!email || !password) {
     return NextResponse.json(
@@ -10,19 +11,35 @@ export async function POST(request: Request) {
     );
   }
 
-  // Mock authentication — accepts any credentials for demo
+  // Mock auth — any credentials accepted for demo
   const user = {
     id: "doctor-1",
-    name: "Dr. Smith",
+    name:
+      "Dr. " +
+      email
+        .split("@")[0]
+        .replace(/[._]/g, " ")
+        .replace(/\b\w/g, (c) => c.toUpperCase()),
     email,
     role: "doctor" as const,
+    specialty: "General Physician",
   };
+
+  const sessionPayload = Buffer.from(JSON.stringify(user)).toString("base64");
 
   const response = NextResponse.json({ success: true, user });
 
-  // Set auth cookie so middleware protects doctor routes
+  // Structured session cookie (readable client-side for AuthContext)
+  response.cookies.set("session", sessionPayload, {
+    httpOnly: false,
+    sameSite: "lax",
+    maxAge: 86400,
+    path: "/",
+  });
+
+  // Legacy auth cookie for middleware compat
   response.cookies.set("auth", "true", {
-    httpOnly: false, // readable by client for AuthContext
+    httpOnly: false,
     sameSite: "lax",
     maxAge: 86400,
     path: "/",

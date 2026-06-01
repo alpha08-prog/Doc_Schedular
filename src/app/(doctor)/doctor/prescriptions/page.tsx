@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useAuth } from "@/contexts/AuthContext";
 import PrescriptionForm from "@/app/components/PrescriptionForm";
 import PrescriptionList from "@/app/components/PrescriptionList";
 import NotificationToast from "@/app/components/NotificationToast";
@@ -16,8 +17,8 @@ export default function PrescriptionsPage() {
     type: "success" | "error" | "info";
   } | null>(null);
 
-  // Mock doctor ID - in a real app, this would come from authentication
-  const doctorId = "1";
+  const { user } = useAuth();
+  const doctorId = user?.id ?? "doctor-1";
 
   const handleCreateNew = () => {
     setEditingPrescription(null);

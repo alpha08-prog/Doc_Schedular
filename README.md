@@ -1,145 +1,285 @@
 # Doc Scheduler
 
-A demo medical appointment and prescription management app built with Next.js 14 and TypeScript. It showcases a doctor and patient workflow with mock APIs, centralized types, and shared in-memory data stores. The UI uses Tailwind CSS.
+A production-grade doctor–patient appointment scheduling platform built with Next.js 14, TypeScript, and Tailwind CSS. Features a full component library, role-based authentication, and a two-sided portal for patients and doctors.
 
 ## Features
-- **Doctor flows**: Dashboard, Calendar, Patients list, Patient medical history, Prescriptions CRUD, Reviews listing with filters.
-- **Patient flows**: Booking, Records, and a new Profile page at `/profile` with quick stats.
-- **APIs**: Mock Next.js API routes for Appointments, Diagnoses, Prescriptions, Reviews.
-- **Centralized types**: Shared TypeScript interfaces under `src/types/`.
-- **Shared stores**: In-memory stores per entity encapsulating CRUD logic.
+
+**Patient Portal**
+- Browse and search doctors by name or specialty
+- Book appointments with date/time slot selection
+- View appointment history (upcoming / past)
+- Access medical records: diagnoses and prescriptions
+- Patient profile with health stats
+
+**Doctor Portal**
+- Dashboard with live stats (today's appointments, unique patients, upcoming)
+- Appointment management: confirm / cancel with real-time updates
+- Patient list derived from appointment history
+- Full prescription CRUD (create, edit, delete)
+- Review management with filtering, sorting, and rating distribution
+- Patient medical history timeline
+- Calendar view with drag-and-drop rescheduling
+
+**Infrastructure**
+- Role-based auth middleware (patient routes vs. doctor routes)
+- Structured session cookie (`base64(JSON)`) set server-side on login
+- Centralized `AuthContext` with session restore on page refresh
+- Global and portal-scoped error boundaries
+- Toast notification system (`useNotification()`)
+- Production `npm run validate` pipeline (type-check + lint + format)
+
+---
 
 ## Tech Stack
-- **Framework**: Next.js 14 (App Router)
-- **Language**: TypeScript, React 18
-- **Styling**: Tailwind CSS
-- **Build**: Node.js + npm
+
+| Layer | Technology |
+|---|---|
+| Framework | Next.js 14 (App Router) |
+| Language | TypeScript 5, React 18 |
+| Styling | Tailwind CSS 3.4 |
+| Validation | Zod 3 |
+| Class merging | clsx + tailwind-merge |
+| Calendar | react-big-calendar + moment.js |
+| Forms | react-hook-form |
+| CI/CD | GitHub Actions (`.github/workflows/ci.yml`) |
+
+---
 
 ## Project Structure
+
 ```
 src/
-  app/
-    api/
-      appointments/
-        route.ts         # GET/POST
-        store.ts         # appointmentStore
-      diagnoses/
-        route.ts         # GET/POST
-        store.ts         # diagnosisStore
-      prescriptions/
-        [id]/route.ts    # GET/PUT/DELETE
-        route.ts         # GET/POST
-        store.ts         # prescriptionStore
-      reviews/
-        [id]/route.ts    # GET/PATCH/DELETE
-        route.ts         # GET/POST (filters, sorting, pagination, stats)
-        store.ts         # reviewStore
-    components/          # Reusable UI components
-    doctor/              # Doctor-facing pages
-    patient/             # Patient landing
-    profile/             # Patient profile page (client-only)
-  types/
-    appointment.ts
-    diagnosis.ts
-    prescription.ts
-    review.ts
+├── app/
+│   ├── (patient)/            # Route group — patient pages (BottomNavBar layout)
+│   │   ├── layout.tsx
+│   │   ├── page.tsx          # Landing / home
+│   │   ├── login/
+│   │   ├── otp/
+│   │   ├── doctors/          # Browse doctors
+│   │   ├── booking/          # My appointments
+│   │   ├── patient/          # Patient dashboard + appointment review
+│   │   ├── profile/
+│   │   ├── records/          # Diagnoses + prescriptions
+│   │   └── doctor/[id]/      # Doctor detail + booking flow
+│   ├── (doctor)/             # Route group — doctor portal (DoctorNavBar layout)
+│   │   ├── layout.tsx
+│   │   ├── doctor/
+│   │   │   ├── dashboard/
+│   │   │   ├── appointments/
+│   │   │   ├── calendar/
+│   │   │   ├── patients/
+│   │   │   ├── prescriptions/
+│   │   │   ├── reviews/
+│   │   │   └── profile/
+│   │   ├── error.tsx         # Doctor portal error boundary
+│   │   └── loading.tsx
+│   ├── doctor/               # Auth pages (no nav layout)
+│   │   ├── login/
+│   │   ├── signup/
+│   │   └── logout/
+│   ├── api/                  # Next.js API routes (in-memory stores)
+│   │   ├── appointments/     # GET, POST, [id] PATCH/DELETE
+│   │   ├── auth/doctor-login/
+│   │   ├── booking/
+│   │   ├── diagnoses/
+│   │   ├── doctors/
+│   │   ├── login/
+│   │   ├── prescriptions/    # Full CRUD
+│   │   └── reviews/          # Filtering, sorting, pagination, stats
+│   ├── components/           # Legacy shared components (being migrated to src/components/)
+│   ├── error.tsx             # Global error boundary
+│   ├── layout.tsx            # Root layout (Providers wrapper)
+│   ├── Providers.tsx         # AuthProvider + NotificationProvider
+│   └── globals.css
+│
+├── components/
+│   ├── ui/                   # Design system primitives
+│   │   ├── Button.tsx        # 5 variants × 3 sizes, loading, icons
+│   │   ├── Input.tsx         # label, error, hint, addons
+│   │   ├── Textarea.tsx
+│   │   ├── Card.tsx          # default | interactive | ghost
+│   │   ├── Badge.tsx         # success | warning | danger | info | neutral
+│   │   ├── Modal.tsx         # accessible, Escape/click-outside close
+│   │   ├── Toast.tsx         # auto-dismiss, 4 types
+│   │   ├── Skeleton.tsx      # shimmer loading states
+│   │   ├── Avatar.tsx        # image + initials fallback
+│   │   ├── EmptyState.tsx
+│   │   ├── StarRating.tsx    # interactive + readonly
+│   │   └── index.ts          # barrel export
+│   └── appointment/
+│       └── AppointmentCard.tsx
+│
+├── contexts/
+│   ├── AuthContext.tsx        # useAuth() — user, role, login, logout
+│   └── NotificationContext.tsx # useNotification() — notify(message, type)
+│
+├── lib/
+│   ├── utils.ts              # cn(), formatDate(), formatTime(), getInitials()
+│   ├── api-client.ts         # apiClient.get/post/put/patch/delete + ApiError
+│   ├── constants.ts          # ROUTES, APPOINTMENT_TYPES, SPECIALTIES
+│   └── validations/          # Zod schemas for all entities
+│       ├── appointment.schema.ts
+│       ├── prescription.schema.ts
+│       ├── review.schema.ts
+│       └── auth.schema.ts
+│
+├── types/                    # Shared TypeScript interfaces
+│   ├── appointment.ts        # Appointment + AppointmentStatus/Type
+│   ├── api.ts                # ApiResponse<T>, PaginatedResponse<T>
+│   ├── diagnosis.ts
+│   ├── doctor.ts
+│   ├── prescription.ts
+│   ├── review.ts
+│   └── user.ts               # PatientUser | DoctorUser, UserRole
+│
+└── data/
+    ├── doctors.json          # 5 seed doctors
+    └── timeslots.json
 ```
 
-## Architecture & Design
-- **Centralized types**: `src/types/*` (e.g., `Prescription`, `Appointment`, `Diagnosis`, `Review`) used by both API routes and UI components.
-- **Shared in-memory stores**: Each API folder has a `store.ts` (e.g., `reviewStore`) exposing `all`, `findById`, `create`, `update`, `remove`. This avoids duplicated arrays and inconsistent data between routes.
-- **Consistent APIs**: CRUD patterns across entities; Reviews include filtering, sorting, pagination, and rating stats.
-- **Mock data**: Stores initialize with example data for demo purposes.
+---
 
 ## Getting Started
+
 ### Prerequisites
-- Node.js 18+
+- Node.js 20+
 - npm 9+
 
-### Install
+### 1. Install dependencies
+
 ```bash
 npm install
 ```
 
-### Run Dev Server
+### 2. Create environment file
+
+```bash
+cp .env.example .env
+```
+
+The default values in `.env.example` work for local development — no changes needed to run the app.
+
+### 3. Start the dev server
+
 ```bash
 npm run dev
-# App runs at http://localhost:3000
+# → http://localhost:3000
 ```
 
-### Build
+---
+
+## Environment Variables
+
+See `.env.example` for the full list. Key variables:
+
+| Variable | Default | Description |
+|---|---|---|
+| `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` | Base URL for the app |
+| `NEXT_PUBLIC_APP_NAME` | `"Doc Scheduler"` | App display name |
+| `AUTH_SECRET` | — | Secret for cookie signing (set for production) |
+| `NODE_ENV` | `development` | Runtime environment |
+
+---
+
+## Available Scripts
+
+```bash
+npm run dev          # Start development server
+npm run build        # Production build
+npm run start        # Start production server
+npm run lint         # ESLint check
+npm run lint:fix     # ESLint auto-fix
+npm run format       # Prettier format all src files
+npm run format:check # Prettier format check (used in CI)
+npm run type-check   # TypeScript compile check (no emit)
+npm run validate     # Full check: type-check + lint + format:check
+```
+
+---
+
+## Authentication Flow
+
+The app uses a **structured session cookie** (`session=<base64(JSON)>`) set server-side on login.
+
+| Endpoint | Sets cookie | Role |
+|---|---|---|
+| `POST /api/login` | `session` + `auth` | patient |
+| `POST /api/auth/doctor-login` | `session` + `auth` | doctor |
+
+`middleware.ts` reads the `session` cookie and enforces role-based route protection:
+
+- **Doctor portal** (`/doctor/dashboard`, `/doctor/appointments`, etc.) → requires `role === 'doctor'`
+- **Patient routes** (`/booking`, `/patient/*`, `/profile`, `/records`) → requires any authenticated user
+- **Public routes** (`/`, `/login`, `/otp`, `/doctor/login`, `/doctors`) → no auth needed
+
+Login with any email/password in demo mode — credentials are not validated.
+
+**Patient login:** `/login`
+**Doctor login:** `/doctor/login`
+
+---
+
+## API Reference
+
+All endpoints return `{ success: boolean, data?: T, error?: string }`.
+
+### Appointments — `/api/appointments`
+| Method | Path | Description |
+|---|---|---|
+| GET | `/api/appointments?patientId=` | Patient's appointments |
+| GET | `/api/appointments?doctorId=` | Doctor's appointments |
+| POST | `/api/appointments` | Create appointment |
+| GET | `/api/appointments/[id]` | Single appointment |
+| PATCH | `/api/appointments/[id]` | Update status/notes |
+| DELETE | `/api/appointments/[id]` | Soft-cancel |
+
+### Prescriptions — `/api/prescriptions`
+Full CRUD: `GET`, `POST`, `GET /[id]`, `PUT /[id]`, `DELETE /[id]`
+
+### Reviews — `/api/reviews`
+| Query param | Values |
+|---|---|
+| `doctorId` | Filter by doctor |
+| `ratingMin` / `ratingMax` | Rating range (1–5) |
+| `sort` | `newest` \| `oldest` \| `highest` \| `lowest` |
+| `page` / `pageSize` | Pagination (default 10) |
+
+Response includes `total`, `average`, and `distribution` stats.
+
+### Diagnoses — `/api/diagnoses`
+`GET` (filter by `patientId`/`doctorId`), `POST`
+
+---
+
+## CI/CD
+
+GitHub Actions runs on every push to `main` / `develop` and on pull requests:
+
+```
+type-check → lint → format:check → build
+```
+
+See `.github/workflows/ci.yml`.
+
+---
+
+## Deployment
+
+### Docker / Node.js server (recommended)
+The app uses `output: 'standalone'` in `next.config.js` which generates a self-contained server bundle:
+
 ```bash
 npm run build
-npm run start
+node .next/standalone/server.js
 ```
 
-## Key Pages & Flows
-- **Home**: `/`
-- **Doctor**:
-  - Login: `/doctor/login`
-  - Dashboard: `/doctor/dashboard`
-  - Calendar: `/doctor/calendar`
-  - Patients: `/doctor/patients`
-  - Patient History: `/doctor/patients/[patientId]/history` (aggregates appointments, diagnoses, prescriptions)
-  - Prescriptions: `/doctor/prescriptions` (full CRUD)
-  - Reviews: `/doctor/reviews` (filters, sorting, rating distribution)
-- **Patient**:
-  - Profile: `/profile` (edit basic info, quick stats via APIs)
-  - Booking: `/booking`
-  - Records: `/records`
+### Netlify
+Requires `@netlify/plugin-nextjs` for SSR support. See `netlify.toml` for instructions.
 
-## API Overview (Mock)
-All routes return JSON with `{ success: boolean, data?: any, error?: string }` plus entity-specific fields.
+---
 
-### Prescriptions
-- `GET /api/prescriptions` — Query by `doctorId`, `patientId`, etc.
-- `POST /api/prescriptions` — Create with validation.
-- `GET /api/prescriptions/[id]`
-- `PUT /api/prescriptions/[id]`
-- `DELETE /api/prescriptions/[id]`
+## Data Notes
 
-### Appointments
-- `GET /api/appointments` — Filter by `patientId` or `doctorId`.
-- `POST /api/appointments` — Validates `patientId`, `doctorId`, `date`, `reason`.
+All data is **in-memory** — it resets on server restart. Mock seed data uses dates in 2026 so that the "upcoming" appointment filters work correctly.
 
-### Diagnoses
-- `GET /api/diagnoses` — Filter by `patientId` or `doctorId`.
-- `POST /api/diagnoses` — Validates `patientId`, `doctorId`, `diagnosis`, `date`.
-
-### Reviews
-- `GET /api/reviews` — Filters: `doctorId`, `patientId`, `appointmentId`, `ratingMin`, `ratingMax`; sorting: `newest|oldest|highest|lowest`; pagination: `page`, `pageSize`. Responds with stats: `total`, `average`, `distribution`.
-- `POST /api/reviews` — Validates `rating` (1-5).
-- `GET /api/reviews/[id]`
-- `PATCH /api/reviews/[id]` — 24h edit window enforced.
-- `DELETE /api/reviews/[id]` — 24h delete window enforced.
-
-## Development Notes
-- **Types in UI**: Components import shared types from `src/types/*` (e.g., `import type { Review } from 'src/types/review'`).
-- **Consistency**: All CRUD routes operate on the centralized store; no duplicate arrays in route files.
-- **Validation**: Basic input validation in POST routes for appointments, diagnoses, prescriptions, and reviews.
-- **Styling**: Tailwind utility classes; feel free to extend.
-
-## Testing Ideas
-- Unit-test stores (pure CRUD behavior).
-- API integration tests for query parameters and error cases.
-- E2E tests for flows: create/edit/delete a prescription; filter/sort/paginate reviews; patient profile edit and persistence.
-
-## Future Enhancements
-- **Authentication & Authorization** (doctor vs patient roles; route guards).
-- **Persistent Database** (replace in-memory stores with a real DB + ORM like Prisma).
-- **Search & Pagination** across more entities (prescriptions, diagnoses, appointments).
-- **Advanced Validation** (Zod/Yup schemas shared between client and server).
-- **Notifications** and email/SMS reminders for appointments.
-- **File uploads** (attachments to records/prescriptions).
-- **Accessibility** and i18n.
-- **CI/CD & Linting** improvements; align ESLint/Next versions as needed.
-
-## Scripts
-```bash
-npm run dev     # Start dev server
-npm run build   # Production build
-npm run start   # Start production server
-```
-
-## License
-MIT (for demo purposes). Replace with your organization’s license as needed.
+To add persistent storage, replace the store files in `src/app/api/*/store.ts` with Prisma + a real database. The Zod schemas in `src/lib/validations/` are already defined for all entities and can be reused for server-side validation.

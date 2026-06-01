@@ -15,11 +15,6 @@ interface AuthContextValue {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-function readAuthCookie(): boolean {
-  if (typeof document === "undefined") return false;
-  return document.cookie.split("; ").some((c) => c.trim() === "auth=true");
-}
-
 function readSessionCookie(): User | null {
   if (typeof document === "undefined") return null;
   const match = document.cookie.split("; ").find((c) => c.startsWith("session="));
@@ -37,23 +32,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Restore session on mount (handles page refreshes)
   useEffect(() => {
-    // Try structured session cookie first (Phase 5+), fall back to legacy auth cookie
     const sessionUser = readSessionCookie();
-    if (sessionUser) {
-      setUser(sessionUser);
-    } else if (readAuthCookie()) {
-      // Legacy mock auth — create a minimal patient user
-      const saved =
-        typeof localStorage !== "undefined" ? localStorage.getItem("patientProfile") : null;
-      const profile = saved ? (JSON.parse(saved) as Partial<User>) : {};
-      setUser({
-        id: profile.id ?? "patient-1",
-        name: profile.name ?? "Patient",
-        email: profile.email ?? "",
-        role: "patient",
-      } as User);
-    }
+    if (sessionUser) setUser(sessionUser);
     setIsLoading(false);
   }, []);
 
@@ -68,17 +50,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (!res.ok) {
         const body = (await res.json().catch(() => ({}))) as { error?: string };
-        throw new Error(body.error ?? "Login failed");
+        throw new Error(body.error ?? "Login failed. Please try again.");
       }
 
-      // Legacy fallback: set auth cookie if the API doesn't set session cookie
       const data = (await res.json()) as { user?: Partial<User> };
-      if (!readSessionCookie()) {
-        document.cookie = "auth=true; path=/; max-age=86400; samesite=lax";
-      }
 
+      // The server set the session cookie via Set-Cookie header.
+      // Build user state directly from the API response.
       const loggedInUser: User = {
-        id: data.user?.id ?? "1",
+        id: String(data.user?.id ?? (role === "doctor" ? "doctor-1" : "patient-1")),
         name: data.user?.name ?? email.split("@")[0],
         email,
         role,
@@ -91,9 +71,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 
   const logout = useCallback(() => {
-    // Clear all auth cookies
-    document.cookie = "auth=; path=/; max-age=0";
-    document.cookie = "session=; path=/; max-age=0";
+    const expire = "; path=/; max-age=0; samesite=lax";
+    document.cookie = "session=" + expire;
+    document.cookie = "auth=" + expire;
     setUser(null);
     router.push("/");
   }, [router]);
