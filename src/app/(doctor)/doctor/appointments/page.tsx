@@ -17,6 +17,7 @@ type AppointmentStatus = "pending" | "confirmed" | "cancelled" | "completed";
 interface Appointment {
   id: string;
   patientId: string;
+  patientName?: string;
   doctorId: string;
   date: string;
   reason: string;
@@ -53,7 +54,7 @@ const calendarIcon = (
 export default function DoctorAppointments() {
   const { user } = useAuth();
   const { notify } = useNotification();
-  const doctorId = user?.id ?? "1";
+  const doctorId = (user as { doctorProfileId?: string } | null)?.doctorProfileId ?? "1";
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -216,11 +217,11 @@ export default function DoctorAppointments() {
                   <Card padding="md">
                     <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                       <div className="flex items-start gap-4 min-w-0">
-                        <Avatar name={apt.patientId} size="md" />
+                        <Avatar name={apt.patientName ?? apt.patientId} size="md" />
                         <div className="min-w-0">
                           <div className="flex items-center gap-2 flex-wrap mb-1">
                             <h2 className="text-base font-semibold text-gray-900">
-                              Patient {apt.patientId}
+                              {apt.patientName ?? `Patient ${apt.patientId}`}
                             </h2>
                             <Badge variant={statusToBadgeVariant(status)}>{status}</Badge>
                           </div>

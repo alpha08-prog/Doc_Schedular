@@ -4,7 +4,7 @@ export const APP_DESCRIPTION = "Doctor Appointment Booking Platform";
 export const ROUTES = {
   home: "/",
   login: "/login",
-  otp: "/otp",
+  signup: "/signup",
   doctors: "/doctors",
   booking: "/booking",
   patient: "/patient",

@@ -1,14 +1,15 @@
 "use client";
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 
-// Page: /patient/appointments?patientId=patient-1&patientName=Sarah%20Johnson
-// Lists appointments for a given patient and provides a Leave Review link per appointment.
+// Lists the logged-in patient's appointments with a Leave Review link per appointment.
 
 type Appointment = {
   id: string;
   patientId: string;
   doctorId: string;
+  doctorName?: string;
   date: string;
   reason: string;
   notes?: string;
@@ -27,14 +28,16 @@ export default function PatientAppointmentsPage({
 }: {
   searchParams: Record<string, string>;
 }) {
-  const patientId = searchParams.patientId || "patient-1";
-  const patientName = searchParams.patientName || "";
+  const { user } = useAuth();
+  const patientId = user?.id ?? searchParams.patientId ?? "";
+  const patientName = user?.name ?? searchParams.patientName ?? "";
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [rows, setRows] = useState<Appointment[]>([]);
 
   useEffect(() => {
+    if (!patientId) return;
     async function load() {
       setLoading(true);
       setError(null);
@@ -103,8 +106,7 @@ export default function PatientAppointmentsPage({
                     <div className="text-xs text-gray-500 mt-0.5">Notes: {apt.notes}</div>
                   )}
                   <div className="text-xs text-gray-500 mt-0.5">
-                    Doctor ID: <span className="font-mono">{apt.doctorId}</span> · Appointment ID:{" "}
-                    <span className="font-mono">{apt.id}</span>
+                    Doctor: <span className="font-medium">{apt.doctorName ?? apt.doctorId}</span>
                   </div>
                 </div>
                 <div className="flex items-center gap-2">

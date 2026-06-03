@@ -14,6 +14,7 @@ import { formatDate, formatTime } from "@/lib/utils";
 interface Appointment {
   id: string;
   patientId: string;
+  patientName?: string;
   doctorId: string;
   date: string;
   reason: string;
@@ -101,7 +102,7 @@ function StatCard({ label, value, icon, accent }: StatCardProps) {
 
 export default function DoctorDashboard() {
   const { user } = useAuth();
-  const doctorId = user?.id ?? "1";
+  const doctorId = (user as { doctorProfileId?: string } | null)?.doctorProfileId ?? "1";
   const doctorName = user?.name ?? "Doctor";
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -265,10 +266,10 @@ export default function DoctorDashboard() {
                       className="flex items-center justify-between p-4 bg-gray-50 rounded-xl"
                     >
                       <div className="flex items-center gap-4 min-w-0">
-                        <Avatar name={apt.patientId} size="md" />
+                        <Avatar name={apt.patientName ?? apt.patientId} size="md" />
                         <div className="min-w-0">
                           <p className="font-semibold text-gray-900 truncate">
-                            Patient {apt.patientId}
+                            {apt.patientName ?? `Patient ${apt.patientId}`}
                           </p>
                           <p className="text-sm text-gray-600 truncate">{apt.reason}</p>
                         </div>

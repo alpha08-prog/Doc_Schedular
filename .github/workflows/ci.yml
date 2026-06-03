@@ -8,8 +8,14 @@ on:
 
 jobs:
   validate:
-    name: Type-check, Lint & Build
+    name: Type-check, Lint, Test & Build
     runs-on: ubuntu-latest
+
+    env:
+      # Dummy values so `prisma generate` (postinstall) and `next build` succeed.
+      # No real database is contacted during type-check/lint/test/build.
+      DATABASE_URL: "postgresql://user:pass@localhost:5432/docscheduler?schema=public"
+      AUTH_SECRET: "ci-secret-that-is-at-least-32-characters-long"
 
     steps:
       - uses: actions/checkout@v4
@@ -30,6 +36,9 @@ jobs:
 
       - name: Format check
         run: npm run format:check
+
+      - name: Test
+        run: npm run test
 
       - name: Build
         run: npm run build

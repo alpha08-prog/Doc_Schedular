@@ -101,7 +101,7 @@ export default function Home() {
                       </svg>
                     </Link>
                     <Link
-                      href="/login"
+                      href="/signup"
                       className="btn-secondary w-full inline-flex items-center justify-center"
                     >
                       <span>Sign Up</span>

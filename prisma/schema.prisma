@@ -1,0 +1,183 @@
+// Doc Scheduler — Prisma schema (PostgreSQL)
+// Models mirror the previous in-memory stores so API response shapes stay identical.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Lowercase to match the values used across the app (JWT role, UI, cookies).
+enum Role {
+  patient
+  doctor
+}
+
+enum AppointmentStatus {
+  pending
+  confirmed
+  cancelled
+  completed
+}
+
+// ---------------------------------------------------------------------------
+
+model User {
+  id           String  @id @default(cuid())
+  email        String  @unique
+  passwordHash String
+  name         String
+  role         Role
+
+  // Patient profile fields (null for doctors)
+  phone      String?
+  age        Int?
+  bloodType  String?
+  conditions String[] @default([])
+
+  // A doctor login links to exactly one catalog Doctor profile.
+  doctorProfile Doctor? @relation("DoctorProfile")
+
+  // Relations where this user is the patient.
+  appointments  Appointment[]  @relation("PatientAppointments")
+  reviews       Review[]       @relation("PatientReviews")
+  prescriptions Prescription[] @relation("PatientPrescriptions")
+  diagnoses     Diagnosis[]    @relation("PatientDiagnoses")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Doctor {
+  // Seeded catalog doctors use stable string ids ("1".."5"); new signups get a cuid.
+  id     String  @id @default(cuid())
+  userId String? @unique
+  user   User?   @relation("DoctorProfile", fields: [userId], references: [id])
+
+  name      String
+  specialty String
+  image     String?
+  status    String?
+  bio       String?
+  time      String?
+  degrees   String?
+  fellow    String?
+  about     String?
+  tags         String[] @default([])
+  availability String[] @default([])
+
+  rating        Float?
+  experience    String?
+  fee           Int?
+  licenseNumber String?
+  phone         String?
+
+  appointments  Appointment[]  @relation("DoctorAppointments")
+  prescriptions Prescription[] @relation("DoctorPrescriptions")
+  reviews       Review[]       @relation("DoctorReviews")
+  diagnoses     Diagnosis[]    @relation("DoctorDiagnoses")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Appointment {
+  id String @id @default(cuid())
+
+  patientId String
+  patient   User   @relation("PatientAppointments", fields: [patientId], references: [id])
+
+  doctorId String
+  doctor   Doctor @relation("DoctorAppointments", fields: [doctorId], references: [id])
+
+  date   DateTime
+  reason String
+  notes  String?
+  status AppointmentStatus @default(pending)
+  type   String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([patientId])
+  @@index([doctorId])
+}
+
+model Prescription {
+  id String @id @default(cuid())
+
+  patientId String
+  patient   User   @relation("PatientPrescriptions", fields: [patientId], references: [id])
+
+  // Denormalized for display (the UI reads prescription.patientName directly).
+  patientName String
+
+  doctorId String
+  doctor   Doctor @relation("DoctorPrescriptions", fields: [doctorId], references: [id])
+
+  // Loosely coupled to an appointment (no FK — kept as a plain id like the old store).
+  appointmentId String?
+
+  medicineName     String
+  dosage           String
+  duration         String
+  notes            String  @default("")
+  prescriptionDate String // yyyy-mm-dd (kept as string to match the API/UI)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([patientId])
+  @@index([doctorId])
+}
+
+model Review {
+  id String @id @default(cuid())
+
+  appointmentId String
+
+  patientId   String
+  patient     User    @relation("PatientReviews", fields: [patientId], references: [id])
+  patientName String?
+
+  doctorId String
+  doctor   Doctor @relation("DoctorReviews", fields: [doctorId], references: [id])
+
+  rating  Int
+  comment String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([doctorId])
+  @@index([patientId])
+}
+
+model Diagnosis {
+  id String @id @default(cuid())
+
+  patientId String
+  patient   User   @relation("PatientDiagnoses", fields: [patientId], references: [id])
+
+  doctorId String
+  doctor   Doctor @relation("DoctorDiagnoses", fields: [doctorId], references: [id])
+
+  appointmentId String?
+  diagnosis     String
+  notes         String?
+  date          DateTime
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([patientId])
+}
+
+model TimeSlot {
+  id    String @id @default(cuid())
+  label String @unique // e.g. "09:00 AM"
+  order Int
+}

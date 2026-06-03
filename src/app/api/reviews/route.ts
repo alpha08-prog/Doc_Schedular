@@ -1,8 +1,15 @@
-import { NextRequest, NextResponse } from "next/server";
-import type { Review } from "../../../types/review";
-import { reviewStore } from "./store";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import type { Prisma } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth/getCurrentUser";
+import { CreateReviewSchema } from "@/lib/validations/review.schema";
 
-function buildStats(items: Review[]) {
+interface ReviewRow {
+  rating: number;
+}
+
+function buildStats(items: ReviewRow[]) {
   const total = items.length;
   const counts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
   let sum = 0;
@@ -21,6 +28,7 @@ function buildStats(items: Review[]) {
   return { total, average, distribution, counts };
 }
 
+// GET - public reviews with filtering, sorting, pagination, and aggregate stats.
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
@@ -37,68 +45,74 @@ export async function GET(request: NextRequest) {
       | "highest"
       | "lowest";
 
-    let data = [...reviewStore.all()];
-    if (doctorId) data = data.filter((r) => r.doctorId === doctorId);
-    if (patientId) data = data.filter((r) => r.patientId === patientId);
-    if (appointmentId) data = data.filter((r) => r.appointmentId === appointmentId);
-
-    // Rating filters
-    if (ratingMin) {
-      const min = Math.max(1, Math.min(5, parseInt(ratingMin, 10)));
-      data = data.filter((r) => r.rating >= min);
-    }
-    if (ratingMax) {
-      const max = Math.max(1, Math.min(5, parseInt(ratingMax, 10)));
-      data = data.filter((r) => r.rating <= max);
+    const where: Prisma.ReviewWhereInput = {};
+    if (doctorId) where.doctorId = doctorId;
+    if (patientId) where.patientId = patientId;
+    if (appointmentId) where.appointmentId = appointmentId;
+    if (ratingMin || ratingMax) {
+      where.rating = {};
+      if (ratingMin) where.rating.gte = Math.max(1, Math.min(5, parseInt(ratingMin, 10)));
+      if (ratingMax) where.rating.lte = Math.max(1, Math.min(5, parseInt(ratingMax, 10)));
     }
 
-    // Sorting
-    if (sort === "oldest") {
-      data.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
-    } else if (sort === "highest") {
-      data.sort(
-        (a, b) =>
-          b.rating - a.rating || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-    } else if (sort === "lowest") {
-      data.sort(
-        (a, b) =>
-          a.rating - b.rating || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-      );
-    } else {
-      // newest
-      data.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    }
+    const orderBy: Prisma.ReviewOrderByWithRelationInput[] =
+      sort === "oldest"
+        ? [{ createdAt: "asc" }]
+        : sort === "highest"
+          ? [{ rating: "desc" }, { createdAt: "desc" }]
+          : sort === "lowest"
+            ? [{ rating: "asc" }, { createdAt: "desc" }]
+            : [{ createdAt: "desc" }];
 
-    const stats = buildStats(data);
-
-    // Pagination
+    // Stats are computed over the full filtered set, then the page is sliced.
+    const all = await prisma.review.findMany({ where, orderBy });
+    const stats = buildStats(all);
     const start = (page - 1) * pageSize;
-    const paged = data.slice(start, start + pageSize);
+    const paged = all.slice(start, start + pageSize);
 
     return NextResponse.json({ success: true, data: paged, page, pageSize, ...stats });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ success: false, error: "Failed to fetch reviews" }, { status: 500 });
   }
 }
 
+// POST - a patient leaves a review (identity comes from the session)
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-    const now = new Date().toISOString();
-    if (!body.rating || body.rating < 1 || body.rating > 5) {
-      return NextResponse.json({ success: false, error: "Rating must be 1-5" }, { status: 400 });
+    const session = await getSession();
+    if (!session || session.role !== "patient") {
+      return NextResponse.json(
+        { success: false, error: "Only patients can leave reviews" },
+        { status: session ? 403 : 401 }
+      );
     }
-    const created = reviewStore.create({
-      appointmentId: body.appointmentId,
-      patientId: body.patientId,
-      patientName: body.patientName,
-      doctorId: body.doctorId,
-      rating: Number(body.rating),
-      comment: body.comment || "",
-    } as Omit<Review, "id" | "createdAt" | "updatedAt">);
+
+    const body = await request.json().catch(() => ({}));
+    const parsed = CreateReviewSchema.safeParse({
+      ...body,
+      patientId: session.sub,
+      patientName: session.name,
+      rating: body.rating != null ? Number(body.rating) : undefined,
+    });
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" },
+        { status: 400 }
+      );
+    }
+
+    const created = await prisma.review.create({
+      data: {
+        appointmentId: parsed.data.appointmentId,
+        patientId: session.sub,
+        patientName: session.name,
+        doctorId: parsed.data.doctorId,
+        rating: parsed.data.rating,
+        comment: parsed.data.comment,
+      },
+    });
     return NextResponse.json({ success: true, data: created }, { status: 201 });
-  } catch (e) {
+  } catch {
     return NextResponse.json({ success: false, error: "Failed to create review" }, { status: 500 });
   }
 }

@@ -1,46 +1,41 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { verifyPassword } from "@/lib/auth/password";
+import { signSession } from "@/lib/auth/session";
+import { setSessionCookie } from "@/lib/auth/cookies";
+import { CredentialsSchema } from "@/lib/validations/auth.schema";
 
+// Patient login.
 export async function POST(request: Request) {
-  const body = (await request.json().catch(() => ({}))) as { email?: string; password?: string };
-  const { email, password } = body;
-
-  if (!email || !password) {
+  const json = await request.json().catch(() => ({}));
+  const parsed = CredentialsSchema.safeParse(json);
+  if (!parsed.success) {
     return NextResponse.json(
-      { success: false, error: "Email and password are required" },
+      { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" },
       { status: 400 }
     );
   }
 
-  // Mock auth — any credentials accepted for demo
-  const user = {
-    id: "patient-1",
-    name: email
-      .split("@")[0]
-      .replace(/[._]/g, " ")
-      .replace(/\b\w/g, (c) => c.toUpperCase()),
-    email,
-    role: "patient" as const,
-  };
+  const email = parsed.data.email.trim().toLowerCase();
+  const { password } = parsed.data;
 
-  const sessionPayload = Buffer.from(JSON.stringify(user)).toString("base64");
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user || user.role !== "patient" || !(await verifyPassword(password, user.passwordHash))) {
+    return NextResponse.json(
+      { success: false, error: "Invalid email or password" },
+      { status: 401 }
+    );
+  }
 
-  const response = NextResponse.json({ success: true, user });
-
-  // Structured session cookie (readable client-side for AuthContext)
-  response.cookies.set("session", sessionPayload, {
-    httpOnly: false,
-    sameSite: "lax",
-    maxAge: 86400,
-    path: "/",
+  const safeUser = { id: user.id, name: user.name, email: user.email, role: user.role };
+  const token = await signSession({
+    sub: user.id,
+    email: user.email,
+    name: user.name,
+    role: "patient",
   });
 
-  // Legacy auth cookie for middleware compat during transition
-  response.cookies.set("auth", "true", {
-    httpOnly: false,
-    sameSite: "lax",
-    maxAge: 86400,
-    path: "/",
-  });
-
+  const response = NextResponse.json({ success: true, user: safeUser });
+  setSessionCookie(response, token);
   return response;
 }

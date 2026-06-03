@@ -135,11 +135,29 @@ export default function DoctorSignup() {
 
     setLoading(true);
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      const res = await fetch("/api/auth/doctor-signup", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: form.firstName,
+          lastName: form.lastName,
+          email: form.email,
+          phone: form.phone,
+          password: form.password,
+          confirmPassword: form.confirmPassword,
+          medicalLicense: form.medicalLicense,
+          specialty: form.specialty,
+          experience: form.experience,
+          hospitalAffiliation: form.hospitalAffiliation,
+        }),
+      });
+      const data = (await res.json().catch(() => ({}))) as { success?: boolean; error?: string };
+      if (!res.ok || !data.success) {
+        throw new Error(data.error ?? "Sign up failed. Please try again.");
+      }
       setSuccess(true);
     } catch (error) {
-      console.error("Signup failed:", error);
+      setErrors({ submit: error instanceof Error ? error.message : "Sign up failed" });
     } finally {
       setLoading(false);
     }
@@ -589,6 +607,12 @@ export default function DoctorSignup() {
           {currentStep === 1 && renderStep1()}
           {currentStep === 2 && renderStep2()}
           {currentStep === 3 && renderStep3()}
+
+          {errors.submit && (
+            <p className="mt-4 text-center text-sm text-red-600" role="alert">
+              {errors.submit}
+            </p>
+          )}
 
           {/* Navigation Buttons */}
           <div className="flex justify-between mt-8">

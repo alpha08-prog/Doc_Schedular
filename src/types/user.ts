@@ -20,6 +20,9 @@ export interface DoctorUser {
   licenseNumber?: string;
   experience?: string;
   fee?: number;
+  // The linked catalog Doctor.id — appointments/prescriptions/reviews key off
+  // this, not the User id.
+  doctorProfileId?: string;
 }
 
 export type User = PatientUser | DoctorUser;

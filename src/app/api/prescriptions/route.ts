@@ -1,57 +1,44 @@
-import { NextRequest, NextResponse } from "next/server";
-import type { Prescription } from "../../../types/prescription";
-import { prescriptionStore } from "./store";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import type { Prisma } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth/getCurrentUser";
+import { CreatePrescriptionSchema } from "@/lib/validations/prescription.schema";
 
-// GET - Fetch all prescriptions or filter by query params
+// GET - prescriptions for the current user (doctor → theirs; patient → theirs)
 export async function GET(request: NextRequest) {
   try {
+    const session = await getSession();
+    if (!session) {
+      return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+    }
+
     const { searchParams } = new URL(request.url);
-    const doctorId = searchParams.get("doctorId");
-    const patientId = searchParams.get("patientId");
+    const where: Prisma.PrescriptionWhereInput = {};
+
+    if (session.role === "doctor") {
+      where.doctorId = session.doctorProfileId ?? "__no_doctor__";
+      const patientId = searchParams.get("patientId");
+      if (patientId) where.patientId = patientId;
+    } else {
+      where.patientId = session.sub;
+    }
+
     const appointmentId = searchParams.get("appointmentId");
+    if (appointmentId) where.appointmentId = appointmentId;
+
     const search = searchParams.get("search");
-
-    let filteredPrescriptions = [...prescriptionStore.all()];
-
-    // Filter by doctorId
-    if (doctorId) {
-      filteredPrescriptions = filteredPrescriptions.filter((p) => p.doctorId === doctorId);
-    }
-
-    // Filter by patientId
-    if (patientId) {
-      filteredPrescriptions = filteredPrescriptions.filter((p) => p.patientId === patientId);
-    }
-
-    // Filter by appointmentId
-    if (appointmentId) {
-      filteredPrescriptions = filteredPrescriptions.filter(
-        (p) => p.appointmentId === appointmentId
-      );
-    }
-
-    // Search functionality
     if (search) {
-      const searchLower = search.toLowerCase();
-      filteredPrescriptions = filteredPrescriptions.filter(
-        (p) =>
-          p.medicineName.toLowerCase().includes(searchLower) ||
-          p.patientName.toLowerCase().includes(searchLower) ||
-          p.notes.toLowerCase().includes(searchLower)
-      );
+      where.OR = [
+        { medicineName: { contains: search, mode: "insensitive" } },
+        { patientName: { contains: search, mode: "insensitive" } },
+        { notes: { contains: search, mode: "insensitive" } },
+      ];
     }
 
-    // Sort by creation date (newest first)
-    filteredPrescriptions.sort(
-      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
-    );
-
-    return NextResponse.json({
-      success: true,
-      data: filteredPrescriptions,
-      total: filteredPrescriptions.length,
-    });
-  } catch (error) {
+    const data = await prisma.prescription.findMany({ where, orderBy: { createdAt: "desc" } });
+    return NextResponse.json({ success: true, data, total: data.length });
+  } catch {
     return NextResponse.json(
       { success: false, error: "Failed to fetch prescriptions" },
       { status: 500 }
@@ -59,40 +46,57 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// POST - Create a new prescription
+// POST - a doctor creates a prescription for one of their patients
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json();
-
-    // Basic validation
-    if (!body.patientName || !body.medicineName || !body.dosage || !body.duration) {
+    const session = await getSession();
+    if (!session || session.role !== "doctor") {
       return NextResponse.json(
-        { success: false, error: "Missing required fields" },
+        { success: false, error: "Only doctors can create prescriptions" },
+        { status: session ? 403 : 401 }
+      );
+    }
+
+    const body = await request.json().catch(() => ({}));
+    const parsed = CreatePrescriptionSchema.safeParse({
+      ...body,
+      doctorId: session.doctorProfileId,
+      prescriptionDate: body.prescriptionDate || new Date().toISOString().split("T")[0],
+    });
+    if (!parsed.success) {
+      return NextResponse.json(
+        { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" },
         { status: 400 }
       );
     }
 
-    const created = prescriptionStore.create({
-      patientId: body.patientId,
-      patientName: body.patientName,
-      doctorId: body.doctorId,
-      appointmentId: body.appointmentId,
-      medicineName: body.medicineName,
-      dosage: body.dosage,
-      duration: body.duration,
-      notes: body.notes || "",
-      prescriptionDate: body.prescriptionDate || new Date().toISOString().split("T")[0],
-    } as Omit<Prescription, "id" | "createdAt" | "updatedAt">);
+    const patient = await prisma.user.findUnique({ where: { id: parsed.data.patientId } });
+    if (!patient || patient.role !== "patient") {
+      return NextResponse.json(
+        { success: false, error: "Selected patient not found" },
+        { status: 400 }
+      );
+    }
+
+    const created = await prisma.prescription.create({
+      data: {
+        patientId: parsed.data.patientId,
+        patientName: parsed.data.patientName,
+        doctorId: session.doctorProfileId!,
+        appointmentId: parsed.data.appointmentId ?? null,
+        medicineName: parsed.data.medicineName,
+        dosage: parsed.data.dosage,
+        duration: parsed.data.duration,
+        notes: parsed.data.notes ?? "",
+        prescriptionDate: parsed.data.prescriptionDate,
+      },
+    });
 
     return NextResponse.json(
-      {
-        success: true,
-        data: created,
-        message: "Prescription created successfully",
-      },
+      { success: true, data: created, message: "Prescription created successfully" },
       { status: 201 }
     );
-  } catch (error) {
+  } catch {
     return NextResponse.json(
       { success: false, error: "Failed to create prescription" },
       { status: 500 }

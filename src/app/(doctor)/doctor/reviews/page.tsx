@@ -21,7 +21,9 @@ export default function DoctorReviewsPage({
   searchParams: Record<string, string>;
 }) {
   const { user } = useAuth();
-  const doctorId = user?.id ?? searchParams.doctorId ?? "1";
+  // Reviews are keyed by the catalog Doctor id (doctorProfileId), not the User id.
+  const doctorId =
+    (user as { doctorProfileId?: string } | null)?.doctorProfileId ?? searchParams.doctorId ?? "1";
   const [page, setPage] = useState<number>(parseInt(searchParams.page || "1", 10));
   const [pageSize, setPageSize] = useState<number>(parseInt(searchParams.pageSize || "10", 10));
   const [loading, setLoading] = useState(true);

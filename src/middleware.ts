@@ -1,34 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-
-interface SessionUser {
-  id: string;
-  name: string;
-  email: string;
-  role: "patient" | "doctor";
-}
-
-function getSessionUser(request: NextRequest): SessionUser | null {
-  // Try structured session cookie first
-  const sessionValue = request.cookies.get("session")?.value;
-  if (sessionValue) {
-    try {
-      const decoded = atob(sessionValue); // atob is available in Edge runtime
-      const user = JSON.parse(decoded) as SessionUser;
-      if (user.role === "patient" || user.role === "doctor") return user;
-    } catch {
-      // Malformed — fall through to legacy check
-    }
-  }
-
-  // Legacy fallback: plain auth=true cookie (set before Phase 5 upgrade)
-  if (request.cookies.get("auth")?.value === "true") {
-    // We don't know the role from the legacy cookie — treat as patient
-    return { id: "patient-1", name: "User", email: "", role: "patient" };
-  }
-
-  return null;
-}
+import { SESSION_COOKIE, verifySession } from "@/lib/auth/session";
 
 // Routes that require role === 'doctor'
 const DOCTOR_PORTAL_ROUTES = [
@@ -42,20 +14,13 @@ const DOCTOR_PORTAL_ROUTES = [
   "/doctor/logout",
 ];
 
-// Routes that require any authenticated user (patient role or any)
+// Routes that require any authenticated user
 const PATIENT_ROUTES = ["/booking", "/patient", "/records", "/profile"];
 
 // Routes that are always public (no auth needed)
-const PUBLIC_ROUTES = [
-  "/",
-  "/login",
-  "/otp",
-  "/doctor/login",
-  "/doctor/signup",
-  "/doctors",
-];
+const PUBLIC_ROUTES = ["/", "/login", "/signup", "/doctor/login", "/doctor/signup", "/doctors"];
 
-export function middleware(request: NextRequest) {
+export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Always allow API routes and static assets
@@ -68,11 +33,11 @@ export function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  const user = getSessionUser(request);
+  const session = await verifySession(request.cookies.get(SESSION_COOKIE)?.value);
 
   // Doctor portal routes → require doctor role
   if (DOCTOR_PORTAL_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"))) {
-    if (!user || user.role !== "doctor") {
+    if (!session || session.role !== "doctor") {
       return NextResponse.redirect(new URL("/doctor/login", request.url));
     }
     return NextResponse.next();
@@ -80,16 +45,16 @@ export function middleware(request: NextRequest) {
 
   // Patient routes → require any authenticated user
   if (PATIENT_ROUTES.some((r) => pathname === r || pathname.startsWith(r + "/"))) {
-    if (!user) {
+    if (!session) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
     return NextResponse.next();
   }
 
-  // /doctor/[id]/book and /doctor/[id]/success → require patient auth
+  // /doctor/[id]/book and /doctor/[id]/success → require auth (patient booking)
   const doctorBookingMatch = pathname.match(/^\/doctor\/[^/]+\/(book|success)/);
   if (doctorBookingMatch) {
-    if (!user) {
+    if (!session) {
       return NextResponse.redirect(new URL("/login", request.url));
     }
     return NextResponse.next();

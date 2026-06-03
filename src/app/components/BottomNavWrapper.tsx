@@ -4,8 +4,8 @@ import BottomNavBar from "./BottomNavBar";
 
 const BottomNavWrapper = () => {
   const pathname = usePathname();
-  // Hide BottomNavBar on login and otp pages
-  if (pathname === "/login" || pathname === "/otp") {
+  // Hide BottomNavBar on the auth pages
+  if (pathname === "/login" || pathname === "/signup") {
     return null;
   }
   return <BottomNavBar />;

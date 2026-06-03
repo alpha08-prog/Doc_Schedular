@@ -15,6 +15,7 @@ import { formatDate } from "@/lib/utils";
 interface Appointment {
   id: string;
   patientId: string;
+  patientName?: string;
   doctorId: string;
   date: string;
   reason: string;
@@ -30,6 +31,7 @@ interface AppointmentsResponse {
 
 interface DerivedPatient {
   patientId: string;
+  patientName: string;
   appointmentCount: number;
   lastVisit: string; // ISO of most recent appointment
   lastReason: string;
@@ -60,7 +62,7 @@ const usersIcon = (
 export default function DoctorPatients() {
   const { user } = useAuth();
   const router = useRouter();
-  const doctorId = user?.id ?? "1";
+  const doctorId = (user as { doctorProfileId?: string } | null)?.doctorProfileId ?? "1";
 
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [loading, setLoading] = useState(true);
@@ -108,6 +110,7 @@ export default function DoctorPatients() {
         const mostRecent = sorted[0];
         return {
           patientId,
+          patientName: mostRecent.patientName ?? "",
           appointmentCount: list.length,
           lastVisit: mostRecent.date,
           lastReason: mostRecent.reason,
@@ -119,7 +122,7 @@ export default function DoctorPatients() {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return patients;
-    return patients.filter((p) => p.patientId.toLowerCase().includes(q));
+    return patients.filter((p) => (p.patientName || p.patientId).toLowerCase().includes(q));
   }, [patients, search]);
 
   const goToHistory = (patientId: string) => {
@@ -147,11 +150,11 @@ export default function DoctorPatients() {
         <div className="mb-6">
           <Input
             type="search"
-            placeholder="Search by patient ID..."
+            placeholder="Search patients by name..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             leftAddon={searchIcon}
-            aria-label="Search patients by ID"
+            aria-label="Search patients by name"
           />
         </div>
 
@@ -189,14 +192,14 @@ export default function DoctorPatients() {
                   padding="md"
                   onClick={() => goToHistory(patient.patientId)}
                   className="w-full text-left"
-                  aria-label={`View medical history for patient ${patient.patientId}`}
+                  aria-label={`View medical history for ${patient.patientName || patient.patientId}`}
                 >
                   <div className="flex items-start gap-4">
-                    <Avatar name={patient.patientId} size="md" />
+                    <Avatar name={patient.patientName || patient.patientId} size="md" />
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center justify-between gap-2">
                         <h2 className="font-semibold text-gray-900 truncate">
-                          Patient {patient.patientId}
+                          {patient.patientName || `Patient ${patient.patientId}`}
                         </h2>
                         <Badge variant="info">
                           {patient.appointmentCount}{" "}

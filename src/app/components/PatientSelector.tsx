@@ -5,8 +5,6 @@ import { useState, useEffect } from "react";
 interface Patient {
   id: string;
   name: string;
-  email: string;
-  phone: string;
 }
 
 interface PatientSelectorProps {
@@ -16,34 +14,42 @@ interface PatientSelectorProps {
   disabled?: boolean;
 }
 
-// Mock patients data - in production, this would come from an API
-const mockPatients: Patient[] = [
-  { id: "patient-1", name: "John Doe", email: "john@example.com", phone: "(555) 123-4567" },
-  { id: "patient-2", name: "Jane Smith", email: "jane@example.com", phone: "(555) 234-5678" },
-  { id: "patient-3", name: "Bob Johnson", email: "bob@example.com", phone: "(555) 345-6789" },
-  { id: "patient-4", name: "Alice Brown", email: "alice@example.com", phone: "(555) 456-7890" },
-  {
-    id: "patient-5",
-    name: "Charlie Wilson",
-    email: "charlie@example.com",
-    phone: "(555) 567-8901",
-  },
-];
-
 export default function PatientSelector({
   selectedPatientId,
-  selectedPatientName,
   onPatientSelect,
   disabled = false,
 }: PatientSelectorProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
-  const [patients] = useState<Patient[]>(mockPatients);
+  const [patients, setPatients] = useState<Patient[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredPatients = patients.filter(
-    (patient) =>
-      patient.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      patient.email.toLowerCase().includes(searchTerm.toLowerCase())
+  // The doctor's patients, derived from their appointment history.
+  useEffect(() => {
+    let active = true;
+    fetch("/api/appointments")
+      .then((r) => r.json())
+      .then((j) => {
+        if (!active || !j.success) return;
+        const map = new Map<string, Patient>();
+        for (const a of j.data as Array<{ patientId: string; patientName?: string }>) {
+          if (a.patientId && !map.has(a.patientId)) {
+            map.set(a.patientId, { id: a.patientId, name: a.patientName ?? a.patientId });
+          }
+        }
+        setPatients(Array.from(map.values()));
+      })
+      .catch(() => {})
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const filteredPatients = patients.filter((patient) =>
+    patient.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handlePatientSelect = (patient: Patient) => {
@@ -69,10 +75,7 @@ export default function PatientSelector({
         <div className="flex items-center justify-between">
           <div>
             {selectedPatient ? (
-              <div>
-                <div className="font-medium text-gray-900">{selectedPatient.name}</div>
-                <div className="text-sm text-gray-500">{selectedPatient.email}</div>
-              </div>
+              <div className="font-medium text-gray-900">{selectedPatient.name}</div>
             ) : (
               <span className="text-gray-500">Select a patient...</span>
             )}
@@ -102,7 +105,9 @@ export default function PatientSelector({
           </div>
 
           <div className="max-h-48 overflow-y-auto">
-            {filteredPatients.length > 0 ? (
+            {loading ? (
+              <div className="px-4 py-3 text-gray-500 text-center">Loading patients...</div>
+            ) : filteredPatients.length > 0 ? (
               filteredPatients.map((patient) => (
                 <button
                   key={patient.id}
@@ -113,18 +118,17 @@ export default function PatientSelector({
                   }`}
                 >
                   <div className="font-medium text-gray-900">{patient.name}</div>
-                  <div className="text-sm text-gray-500">{patient.email}</div>
-                  <div className="text-sm text-gray-500">{patient.phone}</div>
                 </button>
               ))
             ) : (
-              <div className="px-4 py-3 text-gray-500 text-center">No patients found</div>
+              <div className="px-4 py-3 text-gray-500 text-center">
+                No patients yet. Patients appear here once they book an appointment with you.
+              </div>
             )}
           </div>
         </div>
       )}
 
-      {/* Click outside to close */}
       {isOpen && <div className="fixed inset-0 z-0" onClick={() => setIsOpen(false)} />}
     </div>
   );

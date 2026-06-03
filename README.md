@@ -144,11 +144,12 @@ src/
 ### Prerequisites
 - Node.js 20+
 - npm 9+
+- PostgreSQL (a local install, a hosted DB, or Docker — see step 3)
 
 ### 1. Install dependencies
 
 ```bash
-npm install
+npm install   # also runs `prisma generate`
 ```
 
 ### 2. Create environment file
@@ -157,14 +158,35 @@ npm install
 cp .env.example .env
 ```
 
-The default values in `.env.example` work for local development — no changes needed to run the app.
+You must set `DATABASE_URL` (PostgreSQL) and `AUTH_SECRET` (≥ 32 chars). Generate a secret with `openssl rand -base64 48`.
 
-### 3. Start the dev server
+### 3. Start the database
+
+Easiest — Docker (matches the default `DATABASE_URL`, runs on port 5433):
+
+```bash
+docker compose up -d
+```
+
+Or point `DATABASE_URL` at your own PostgreSQL instance / a hosted DB (Neon, Supabase, Railway).
+
+### 4. Run migrations and seed
+
+```bash
+npm run db:migrate   # apply schema (creates the database if needed)
+npm run db:seed      # load demo doctors, patients, and data
+```
+
+### 5. Start the dev server
 
 ```bash
 npm run dev
 # → http://localhost:3000
 ```
+
+**Demo accounts** (all use password `password123`):
+- Patient: `john@example.com` (also `jane@example.com`, `sarah@example.com`)
+- Doctor: `priya@clinic.com` (also `rahul@`, `anjali@`, `prakash@`, `sneha@clinic.com`)
 
 ---
 
@@ -176,7 +198,8 @@ See `.env.example` for the full list. Key variables:
 |---|---|---|
 | `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` | Base URL for the app |
 | `NEXT_PUBLIC_APP_NAME` | `"Doc Scheduler"` | App display name |
-| `AUTH_SECRET` | — | Secret for cookie signing (set for production) |
+| `DATABASE_URL` | Docker Postgres on `:5433` | PostgreSQL connection string (required) |
+| `AUTH_SECRET` | — | **Required.** ≥ 32-char secret used to sign session JWTs |
 | `NODE_ENV` | `development` | Runtime environment |
 
 ---
@@ -192,30 +215,44 @@ npm run lint:fix     # ESLint auto-fix
 npm run format       # Prettier format all src files
 npm run format:check # Prettier format check (used in CI)
 npm run type-check   # TypeScript compile check (no emit)
-npm run validate     # Full check: type-check + lint + format:check
+npm run test         # Run the Vitest suite
+npm run validate     # Full check: type-check + lint + format:check + test
+npm run db:migrate   # Apply Prisma migrations (dev)
+npm run db:deploy    # Apply migrations (production/CI)
+npm run db:seed      # Seed demo data
+npm run db:studio    # Open Prisma Studio
 ```
 
 ---
 
 ## Authentication Flow
 
-The app uses a **structured session cookie** (`session=<base64(JSON)>`) set server-side on login.
+Real authentication backed by PostgreSQL:
 
-| Endpoint | Sets cookie | Role |
-|---|---|---|
-| `POST /api/login` | `session` + `auth` | patient |
-| `POST /api/auth/doctor-login` | `session` + `auth` | doctor |
+- Passwords are hashed with **bcrypt** (`src/lib/auth/password.ts`).
+- On login the server issues a **signed JWT** (`jose`, HS256, signed with `AUTH_SECRET`) stored in an
+  **httpOnly** `session` cookie (`src/lib/auth/session.ts` / `cookies.ts`) — not readable by client JS.
+- The client `AuthContext` hydrates from `GET /api/auth/me` on mount (since the cookie is httpOnly).
 
-`middleware.ts` reads the `session` cookie and enforces role-based route protection:
+| Endpoint | Purpose |
+|---|---|
+| `POST /api/login` | Patient login |
+| `POST /api/auth/doctor-login` | Doctor login |
+| `POST /api/auth/signup` | Patient registration (auto-login) |
+| `POST /api/auth/doctor-signup` | Doctor registration |
+| `GET /api/auth/me` | Current user (session hydration) |
+| `POST /api/auth/logout` | Clear session |
 
-- **Doctor portal** (`/doctor/dashboard`, `/doctor/appointments`, etc.) → requires `role === 'doctor'`
+`src/middleware.ts` verifies the JWT on the Edge runtime and enforces role-based protection:
+
+- **Doctor portal** (`/doctor/dashboard`, `/doctor/appointments`, …) → requires `role === 'doctor'`
 - **Patient routes** (`/booking`, `/patient/*`, `/profile`, `/records`) → requires any authenticated user
-- **Public routes** (`/`, `/login`, `/otp`, `/doctor/login`, `/doctors`) → no auth needed
+- **Public routes** (`/`, `/login`, `/signup`, `/doctor/login`, `/doctor/signup`, `/doctors`) → no auth
 
-Login with any email/password in demo mode — credentials are not validated.
+> Note: with a `src/` directory, Next.js loads middleware from **`src/middleware.ts`** (a root
+> `middleware.ts` is silently ignored).
 
-**Patient login:** `/login`
-**Doctor login:** `/doctor/login`
+**Patient login:** `/login`  ·  **Doctor login:** `/doctor/login`
 
 ---
 
@@ -256,7 +293,7 @@ Response includes `total`, `average`, and `distribution` stats.
 GitHub Actions runs on every push to `main` / `develop` and on pull requests:
 
 ```
-type-check → lint → format:check → build
+type-check → lint → format:check → test → build
 ```
 
 See `.github/workflows/ci.yml`.
@@ -280,6 +317,13 @@ Requires `@netlify/plugin-nextjs` for SSR support. See `netlify.toml` for instru
 
 ## Data Notes
 
-All data is **in-memory** — it resets on server restart. Mock seed data uses dates in 2026 so that the "upcoming" appointment filters work correctly.
+All data is persisted in **PostgreSQL via Prisma** (`prisma/schema.prisma`, client at `src/lib/prisma.ts`).
+Seed data (`prisma/seed.ts`) loads 5 doctors (from `src/data/doctors.json`), 3 demo patients, and sample
+appointments/prescriptions/reviews/diagnoses with dates in 2026 so the "upcoming" filters work.
 
-To add persistent storage, replace the store files in `src/app/api/*/store.ts` with Prisma + a real database. The Zod schemas in `src/lib/validations/` are already defined for all entities and can be reused for server-side validation.
+Every API route validates input with the Zod schemas in `src/lib/validations/` and derives the acting
+user's identity from the session (never from request bodies), so a patient can only read/modify their own
+records and a doctor only their own.
+
+The doctor **calendar** (`src/app/(doctor)/doctor/calendar`) still uses a separate in-memory mock
+(`src/app/services/appointmentService.ts`) and is not yet Prisma-backed.

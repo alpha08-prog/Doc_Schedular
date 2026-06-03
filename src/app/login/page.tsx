@@ -2,7 +2,6 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Card } from "@/components/ui/Card";
@@ -10,7 +9,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useNotification } from "@/contexts/NotificationContext";
 
 export default function LoginPage() {
-  const router = useRouter();
   const { login } = useAuth();
   const { notify } = useNotification();
 
@@ -205,51 +203,12 @@ export default function LoginPage() {
             </Button>
           </form>
 
-          {/* Alternative Login Options */}
-          <div className="mt-6">
-            {/* Divider */}
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center" aria-hidden="true">
-                <div className="w-full border-t border-gray-300" />
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 bg-white text-gray-500">or continue with phone</span>
-              </div>
-            </div>
-
-            <Button
-              type="button"
-              variant="secondary"
-              size="lg"
-              fullWidth
-              onClick={() => router.push("/otp")}
-              leftIcon={
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  aria-hidden="true"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"
-                  />
-                </svg>
-              }
-            >
-              Continue with Phone Number
-            </Button>
-          </div>
-
           {/* Sign Up Link */}
           <div className="mt-8 text-center">
             <p className="text-sm text-gray-600">
               {`Don't have an account?`}{" "}
               <Link
-                href="#"
+                href="/signup"
                 className="font-medium text-blue-600 hover:text-blue-500 transition-colors duration-200"
               >
                 Sign up

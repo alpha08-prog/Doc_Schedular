@@ -1,0 +1,29 @@
+# Local development database for Doc Scheduler.
+# Brings up PostgreSQL with credentials that match the default DATABASE_URL in
+# .env.example. Uses host port 5433 to avoid clashing with any Postgres already
+# running on the default 5432.
+#
+#   docker compose up -d        # start the database
+#   docker compose down         # stop it (data persists in the named volume)
+#   docker compose down -v      # stop and wipe all data
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: docscheduler-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: docscheduler
+      POSTGRES_PASSWORD: docscheduler
+      POSTGRES_DB: docscheduler
+    ports:
+      - "5433:5432"
+    volumes:
+      - docscheduler_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U docscheduler -d docscheduler"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  docscheduler_pgdata:

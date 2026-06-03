@@ -1,6 +1,7 @@
 "use client";
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 
 // Patient Dashboard: /patient?patientId=patient-1&patientName=Sarah%20Johnson
 // Shows quick links and patient's recent reviews with edit links.
@@ -30,14 +31,16 @@ export default function PatientDashboard({
 }: {
   searchParams: Record<string, string>;
 }) {
-  const patientId = searchParams.patientId || "patient-1";
-  const patientName = searchParams.patientName || "";
+  const { user } = useAuth();
+  const patientId = user?.id ?? searchParams.patientId ?? "";
+  const patientName = user?.name ?? searchParams.patientName ?? "";
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [reviews, setReviews] = useState<Review[]>([]);
 
   useEffect(() => {
+    if (!patientId) return;
     async function load() {
       setLoading(true);
       setError(null);

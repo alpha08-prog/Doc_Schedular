@@ -1,62 +1,87 @@
-import { NextRequest, NextResponse } from "next/server";
-import type { Prescription } from "../../../../types/prescription";
-import { prescriptionStore } from "../store";
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import type { Prisma } from "@prisma/client";
+import { prisma } from "@/lib/prisma";
+import { getSession } from "@/lib/auth/getCurrentUser";
+import { UpdatePrescriptionSchema } from "@/lib/validations/prescription.schema";
 
-// GET - Fetch a single prescription by ID
-export async function GET(request: NextRequest, context: { params: { id: string } }) {
-  const id = context.params.id;
-
-  const prescription = prescriptionStore.findById(id);
-
+// GET - single prescription (owning doctor or patient)
+export async function GET(_req: NextRequest, context: { params: { id: string } }) {
+  const session = await getSession();
+  if (!session) {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+  const prescription = await prisma.prescription.findUnique({ where: { id: context.params.id } });
   if (!prescription) {
     return NextResponse.json({ success: false, error: "Prescription not found" }, { status: 404 });
   }
-
-  return NextResponse.json({
-    success: true,
-    data: prescription,
-  });
+  const owns =
+    session.role === "doctor"
+      ? prescription.doctorId === session.doctorProfileId
+      : prescription.patientId === session.sub;
+  if (!owns) {
+    return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+  }
+  return NextResponse.json({ success: true, data: prescription });
 }
 
-// PUT - Update a prescription
+// PUT - update (prescribing doctor only)
 export async function PUT(request: NextRequest, context: { params: { id: string } }) {
-  const id = context.params.id;
-  const body = await request.json();
-  const existing = prescriptionStore.findById(id);
-
+  const session = await getSession();
+  if (!session || session.role !== "doctor") {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+  const existing = await prisma.prescription.findUnique({ where: { id: context.params.id } });
   if (!existing) {
     return NextResponse.json({ success: false, error: "Prescription not found" }, { status: 404 });
   }
+  if (existing.doctorId !== session.doctorProfileId) {
+    return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+  }
 
-  const updatedPrescription = prescriptionStore.update(id, {
-    medicineName: body.medicineName ?? existing.medicineName,
-    dosage: body.dosage ?? existing.dosage,
-    duration: body.duration ?? existing.duration,
-    notes: body.notes ?? existing.notes,
-    prescriptionDate: body.prescriptionDate ?? existing.prescriptionDate,
-  } as Partial<Prescription>);
+  const body = await request.json().catch(() => ({}));
+  const parsed = UpdatePrescriptionSchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json(
+      { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" },
+      { status: 400 }
+    );
+  }
 
+  const { medicineName, dosage, duration, notes, prescriptionDate } = parsed.data;
+  const data: Prisma.PrescriptionUpdateInput = {};
+  if (medicineName !== undefined) data.medicineName = medicineName;
+  if (dosage !== undefined) data.dosage = dosage;
+  if (duration !== undefined) data.duration = duration;
+  if (notes !== undefined) data.notes = notes;
+  if (prescriptionDate !== undefined) data.prescriptionDate = prescriptionDate;
+
+  const updated = await prisma.prescription.update({ where: { id: context.params.id }, data });
   return NextResponse.json({
     success: true,
-    data: updatedPrescription!,
+    data: updated,
     message: "Prescription updated successfully",
   });
 }
 
-// DELETE - Delete a prescription
-export async function DELETE(request: NextRequest, context: { params: { id: string } }) {
-  const id = context.params.id;
-  const existing = prescriptionStore.findById(id);
-
+// DELETE - remove (prescribing doctor only)
+export async function DELETE(_req: NextRequest, context: { params: { id: string } }) {
+  const session = await getSession();
+  if (!session || session.role !== "doctor") {
+    return NextResponse.json({ success: false, error: "Unauthorized" }, { status: 401 });
+  }
+  const existing = await prisma.prescription.findUnique({ where: { id: context.params.id } });
   if (!existing) {
     return NextResponse.json({ success: false, error: "Prescription not found" }, { status: 404 });
   }
+  if (existing.doctorId !== session.doctorProfileId) {
+    return NextResponse.json({ success: false, error: "Forbidden" }, { status: 403 });
+  }
 
-  const deleted = prescriptionStore.remove(id)!;
-
+  await prisma.prescription.delete({ where: { id: context.params.id } });
   return NextResponse.json({
     success: true,
-    data: deleted,
+    data: existing,
     message: "Prescription deleted successfully",
   });
 }

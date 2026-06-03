@@ -1,49 +1,53 @@
 import { NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+import { verifyPassword } from "@/lib/auth/password";
+import { signSession } from "@/lib/auth/session";
+import { setSessionCookie } from "@/lib/auth/cookies";
+import { CredentialsSchema } from "@/lib/validations/auth.schema";
 
+// Doctor login.
 export async function POST(request: Request) {
-  const body = (await request.json().catch(() => ({}))) as { email?: string; password?: string };
-  const { email, password } = body;
-
-  if (!email || !password) {
+  const json = await request.json().catch(() => ({}));
+  const parsed = CredentialsSchema.safeParse(json);
+  if (!parsed.success) {
     return NextResponse.json(
-      { success: false, error: "Email and password are required" },
+      { success: false, error: parsed.error.issues[0]?.message ?? "Invalid input" },
       { status: 400 }
     );
   }
 
-  // Mock auth — any credentials accepted for demo
-  const user = {
-    id: "doctor-1",
-    name:
-      "Dr. " +
-      email
-        .split("@")[0]
-        .replace(/[._]/g, " ")
-        .replace(/\b\w/g, (c) => c.toUpperCase()),
-    email,
-    role: "doctor" as const,
-    specialty: "General Physician",
+  const email = parsed.data.email.trim().toLowerCase();
+  const { password } = parsed.data;
+
+  const user = await prisma.user.findUnique({
+    where: { email },
+    include: { doctorProfile: true },
+  });
+  if (!user || user.role !== "doctor" || !(await verifyPassword(password, user.passwordHash))) {
+    return NextResponse.json(
+      { success: false, error: "Invalid email or password" },
+      { status: 401 }
+    );
+  }
+
+  const doctorProfileId = user.doctorProfile?.id;
+  const safeUser = {
+    id: user.id,
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    specialty: user.doctorProfile?.specialty,
+    doctorProfileId,
   };
-
-  const sessionPayload = Buffer.from(JSON.stringify(user)).toString("base64");
-
-  const response = NextResponse.json({ success: true, user });
-
-  // Structured session cookie (readable client-side for AuthContext)
-  response.cookies.set("session", sessionPayload, {
-    httpOnly: false,
-    sameSite: "lax",
-    maxAge: 86400,
-    path: "/",
+  const token = await signSession({
+    sub: user.id,
+    email: user.email,
+    name: user.name,
+    role: "doctor",
+    doctorProfileId,
   });
 
-  // Legacy auth cookie for middleware compat
-  response.cookies.set("auth", "true", {
-    httpOnly: false,
-    sameSite: "lax",
-    maxAge: 86400,
-    path: "/",
-  });
-
+  const response = NextResponse.json({ success: true, user: safeUser });
+  setSessionCookie(response, token);
   return response;
 }

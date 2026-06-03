@@ -18,7 +18,8 @@ export default function PrescriptionsPage() {
   } | null>(null);
 
   const { user } = useAuth();
-  const doctorId = user?.id ?? "doctor-1";
+  // Prescriptions are keyed by the catalog Doctor id (doctorProfileId).
+  const doctorId = (user as { doctorProfileId?: string } | null)?.doctorProfileId ?? "1";
 
   const handleCreateNew = () => {
     setEditingPrescription(null);

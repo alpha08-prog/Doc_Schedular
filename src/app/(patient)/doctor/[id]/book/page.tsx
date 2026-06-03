@@ -4,7 +4,6 @@ import React, { useMemo, useState } from "react";
 import { useRouter, useParams } from "next/navigation";
 import doctors from "@/data/doctors.json";
 import Image from "next/image";
-import { useAuth } from "@/contexts/AuthContext";
 
 function parseTimeString(timeStr: string): Date {
   timeStr = timeStr.replace(/–|—/g, "-").replace(/\s+/g, " ").trim();
@@ -58,7 +57,6 @@ function getNextDays(count: number) {
 export default function BookSlotPage() {
   const router = useRouter();
   const params = useParams();
-  const { user } = useAuth();
   const id =
     typeof params.id === "string" ? params.id : Array.isArray(params.id) ? params.id[0] : "";
   const doctor = doctors.find((doc) => String(doc.id) === String(id));
@@ -255,18 +253,28 @@ export default function BookSlotPage() {
               setBookingLoading(true);
               setBookingError(null);
               try {
-                const res = await fetch("/api/booking", {
+                // Combine the chosen day with the slot's start time.
+                const startLabel = selectedSlot.split("–")[0].trim(); // e.g. "09:00 AM"
+                const [clock, modifier] = startLabel.split(" ");
+                const [hStr, mStr] = clock.split(":");
+                let hours = parseInt(hStr, 10) % 12;
+                if ((modifier ?? "").toUpperCase() === "PM") hours += 12;
+                const apptDate = new Date(selectedFullDate);
+                apptDate.setHours(hours, parseInt(mStr ?? "0", 10), 0, 0);
+
+                const res = await fetch("/api/appointments", {
                   method: "POST",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({
-                    doctorId: doctor.id,
-                    userId: user?.id ?? "patient-1",
-                    timeslot: selectedSlot,
-                    date: selectedFullDate.toISOString(),
+                    doctorId: String(doctor.id),
+                    date: apptDate.toISOString(),
+                    reason: `Consultation with ${doctor.name}`,
+                    type: "Consultation",
+                    notes: `Requested slot: ${selectedSlot}`,
                   }),
                 });
-                const data = await res.json();
-                if (data.success) {
+                const data = await res.json().catch(() => ({}));
+                if (res.ok && data.success) {
                   router.push(`/doctor/${id}/success`);
                 } else {
                   setBookingError(data.error || "Booking failed. Please try again.");

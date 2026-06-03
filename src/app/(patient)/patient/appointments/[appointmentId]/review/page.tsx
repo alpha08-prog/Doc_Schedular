@@ -2,6 +2,7 @@
 import React, { useEffect, useMemo, useState } from "react";
 import StarRating from "@/app/components/StarRating";
 import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 
 // This page expects search params: patientId, doctorId, patientName (optional)
 // Example route: /patient/appointments/apt-001/review?patientId=patient-1&doctorId=1&patientName=Sarah%20Johnson
@@ -25,10 +26,12 @@ export default function AppointmentReviewPage({
   params: { appointmentId: string };
   searchParams: Record<string, string>;
 }) {
+  const { user } = useAuth();
   const { appointmentId } = params;
-  const patientId = searchParams.patientId || "patient-1";
+  // The authenticated patient owns this review; fall back to URL params before hydration.
+  const patientId = user?.id ?? searchParams.patientId ?? "";
   const doctorId = searchParams.doctorId || "1";
-  const patientName = searchParams.patientName || "";
+  const patientName = user?.name ?? searchParams.patientName ?? "";
 
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);

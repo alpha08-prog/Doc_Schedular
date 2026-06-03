@@ -41,22 +41,16 @@ type Prescription = {
 };
 
 export default function MedicalHistoryPage({ params }: { params: { patientId: string } }) {
-  const { patientId } = params; // expected: patient-<id>
+  const { patientId } = params;
 
-  // Mock patient header info (aligns with patients page mock data)
-  const mockPatients: Record<
-    string,
-    { name: string; age: number; gender: string; condition?: string }
-  > = {
-    "patient-1": { name: "Sarah Johnson", age: 34, gender: "Female", condition: "Hypertension" },
-    "patient-2": { name: "Michael Chen", age: 28, gender: "Male", condition: "Diabetes Type 2" },
-    "patient-3": { name: "Emily Rodriguez", age: 42, gender: "Female", condition: "Arthritis" },
-    "patient-4": { name: "David Wilson", age: 55, gender: "Male", condition: "Back Pain" },
-    "patient-5": { name: "Lisa Thompson", age: 31, gender: "Female", condition: "Migraine" },
-    "patient-6": { name: "Robert Garcia", age: 47, gender: "Male", condition: "High Cholesterol" },
+  type PatientInfo = {
+    name: string;
+    age?: number | null;
+    bloodType?: string | null;
+    conditions?: string[];
+    email?: string;
   };
-
-  const patientInfo = mockPatients[patientId];
+  const [patientInfo, setPatientInfo] = useState<PatientInfo | null>(null);
 
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -73,17 +67,24 @@ export default function MedicalHistoryPage({ params }: { params: { patientId: st
       try {
         setLoading(true);
         setError(null);
-        const [aRes, dRes, pRes] = await Promise.all([
+        const [aRes, dRes, pRes, patRes] = await Promise.all([
           fetch(`/api/appointments?patientId=${encodeURIComponent(patientId)}`),
           fetch(`/api/diagnoses?patientId=${encodeURIComponent(patientId)}`),
           fetch(`/api/prescriptions?patientId=${encodeURIComponent(patientId)}`),
+          fetch(`/api/patients/${encodeURIComponent(patientId)}`),
         ]);
-        const [aJson, dJson, pJson] = await Promise.all([aRes.json(), dRes.json(), pRes.json()]);
+        const [aJson, dJson, pJson, patJson] = await Promise.all([
+          aRes.json(),
+          dRes.json(),
+          pRes.json(),
+          patRes.json().catch(() => ({})),
+        ]);
         if (!aJson.success || !dJson.success || !pJson.success)
           throw new Error("Failed to load data");
         setAppointments(aJson.data || []);
         setDiagnoses(dJson.data || []);
         setPrescriptions(pJson.data || []);
+        if (patJson.success) setPatientInfo(patJson.data);
       } catch (e: any) {
         setError(e?.message || "Failed to load medical history");
       } finally {
@@ -164,17 +165,21 @@ export default function MedicalHistoryPage({ params }: { params: { patientId: st
             {patientInfo && (
               <div className="mt-3 flex flex-wrap items-center gap-2 text-sm">
                 <span className="font-semibold text-gray-900">{patientInfo.name}</span>
-                <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
-                  {patientInfo.age} yrs
-                </span>
-                <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
-                  {patientInfo.gender}
-                </span>
-                {patientInfo.condition && (
-                  <span className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
-                    {patientInfo.condition}
+                {patientInfo.age != null && (
+                  <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+                    {patientInfo.age} yrs
                   </span>
                 )}
+                {patientInfo.bloodType && (
+                  <span className="px-2 py-0.5 rounded-full bg-gray-100 text-gray-700">
+                    {patientInfo.bloodType}
+                  </span>
+                )}
+                {patientInfo.conditions?.map((c) => (
+                  <span key={c} className="px-2 py-0.5 rounded-full bg-blue-50 text-blue-700">
+                    {c}
+                  </span>
+                ))}
               </div>
             )}
           </div>
