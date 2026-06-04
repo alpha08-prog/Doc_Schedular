@@ -30,8 +30,8 @@ enum AppointmentStatus {
 // ---------------------------------------------------------------------------
 
 model User {
-  id           String  @id @default(cuid())
-  email        String  @unique
+  id           String @id @default(cuid())
+  email        String @unique
   passwordHash String
   name         String
   role         Role
@@ -61,15 +61,15 @@ model Doctor {
   userId String? @unique
   user   User?   @relation("DoctorProfile", fields: [userId], references: [id])
 
-  name      String
-  specialty String
-  image     String?
-  status    String?
-  bio       String?
-  time      String?
-  degrees   String?
-  fellow    String?
-  about     String?
+  name         String
+  specialty    String
+  image        String?
+  status       String?
+  bio          String?
+  time         String?
+  degrees      String?
+  fellow       String?
+  about        String?
   tags         String[] @default([])
   availability String[] @default([])
 
@@ -128,7 +128,7 @@ model Prescription {
   medicineName     String
   dosage           String
   duration         String
-  notes            String  @default("")
+  notes            String @default("")
   prescriptionDate String // yyyy-mm-dd (kept as string to match the API/UI)
 
   createdAt DateTime @default(now())
@@ -136,6 +136,8 @@ model Prescription {
 
   @@index([patientId])
   @@index([doctorId])
+  // appointmentId is used as a query filter in prescriptions GET.
+  @@index([appointmentId])
 }
 
 model Review {
@@ -158,6 +160,8 @@ model Review {
 
   @@index([doctorId])
   @@index([patientId])
+  // appointmentId is used as a query filter in reviews GET.
+  @@index([appointmentId])
 }
 
 model Diagnosis {
@@ -178,6 +182,8 @@ model Diagnosis {
   updatedAt DateTime @updatedAt
 
   @@index([patientId])
+  // doctorId is used as a query filter in diagnoses GET (parity with the other models).
+  @@index([doctorId])
 }
 
 model TimeSlot {
