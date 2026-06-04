@@ -6,8 +6,12 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
-  url      = env("DATABASE_URL")
+  provider  = "postgresql"
+  // Pooled connection (Neon's "-pooler" endpoint) — used by the app at runtime.
+  url       = env("DATABASE_URL")
+  // Direct connection (non-pooled) — used by `prisma migrate` / `prisma db seed`,
+  // which need a real session and can't run through a transaction-mode pooler.
+  directUrl = env("DIRECT_URL")
 }
 
 // Lowercase to match the values used across the app (JWT role, UI, cookies).

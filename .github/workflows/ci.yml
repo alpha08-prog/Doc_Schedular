@@ -15,6 +15,7 @@ jobs:
       # Dummy values so `prisma generate` (postinstall) and `next build` succeed.
       # No real database is contacted during type-check/lint/test/build.
       DATABASE_URL: "postgresql://user:pass@localhost:5432/docscheduler?schema=public"
+      DIRECT_URL: "postgresql://user:pass@localhost:5432/docscheduler?schema=public"
       AUTH_SECRET: "ci-secret-that-is-at-least-32-characters-long"
 
     steps:

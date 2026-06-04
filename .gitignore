@@ -34,10 +34,6 @@ yarn-error.log*
 .env*
 !.env.example
 
-# local dev postgres cluster (created via initdb)
-/.pgdata/
-*.pglog
-
 # vercel
 .vercel
 

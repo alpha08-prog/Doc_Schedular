@@ -144,7 +144,7 @@ src/
 ### Prerequisites
 - Node.js 20+
 - npm 9+
-- PostgreSQL (a local install, a hosted DB, or Docker — see step 3)
+- A free [Neon](https://neon.tech) PostgreSQL database
 
 ### 1. Install dependencies
 
@@ -158,22 +158,24 @@ npm install   # also runs `prisma generate`
 cp .env.example .env
 ```
 
-You must set `DATABASE_URL` (PostgreSQL) and `AUTH_SECRET` (≥ 32 chars). Generate a secret with `openssl rand -base64 48`.
+You must set `DATABASE_URL` and `DIRECT_URL` (both from Neon — see step 3) and `AUTH_SECRET` (≥ 32 chars). Generate a secret with `openssl rand -base64 48`.
 
-### 3. Start the database
+### 3. Provision the database (Neon)
 
-Easiest — Docker (matches the default `DATABASE_URL`, runs on port 5433):
+This project uses [Neon](https://neon.tech) for PostgreSQL. Create a free project,
+then from the dashboard's **Connection Details** copy two strings into `.env`:
 
-```bash
-docker compose up -d
-```
+- `DATABASE_URL` — the **pooled** string (host contains `-pooler`), with
+  `&pgbouncer=true` appended. This is what the app uses at runtime.
+- `DIRECT_URL` — the **direct** string (same, but without `-pooler`). Used by
+  Prisma for migrations and seeding.
 
-Or point `DATABASE_URL` at your own PostgreSQL instance / a hosted DB (Neon, Supabase, Railway).
+See `.env.example` for the exact format.
 
 ### 4. Run migrations and seed
 
 ```bash
-npm run db:migrate   # apply schema (creates the database if needed)
+npm run db:deploy    # apply the committed migrations to your Neon database
 npm run db:seed      # load demo doctors, patients, and data
 ```
 
@@ -198,7 +200,8 @@ See `.env.example` for the full list. Key variables:
 |---|---|---|
 | `NEXT_PUBLIC_APP_URL` | `http://localhost:3000` | Base URL for the app |
 | `NEXT_PUBLIC_APP_NAME` | `"Doc Scheduler"` | App display name |
-| `DATABASE_URL` | Docker Postgres on `:5433` | PostgreSQL connection string (required) |
+| `DATABASE_URL` | — | **Required.** Neon **pooled** URL (host has `-pooler`, `&pgbouncer=true`) |
+| `DIRECT_URL` | — | **Required.** Neon **direct** URL (no `-pooler`) — Prisma migrate/seed |
 | `AUTH_SECRET` | — | **Required.** ≥ 32-char secret used to sign session JWTs |
 | `NODE_ENV` | `development` | Runtime environment |
 
@@ -301,14 +304,6 @@ See `.github/workflows/ci.yml`.
 ---
 
 ## Deployment
-
-### Docker / Node.js server (recommended)
-The app uses `output: 'standalone'` in `next.config.js` which generates a self-contained server bundle:
-
-```bash
-npm run build
-node .next/standalone/server.js
-```
 
 ### Netlify
 Requires `@netlify/plugin-nextjs` for SSR support. See `netlify.toml` for instructions.
